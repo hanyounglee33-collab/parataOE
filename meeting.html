@@ -61,14 +61,14 @@
     </nav>
     <div class="header-area">
         <h1>MEETING MINUTES</h1>
-        <p>운항기술팀 회의록 (Firebase 실시간 연동)</p>
+        <p>운항기술팀 회의록 (Cloud Database)</p>
     </div>
     <div class="container">
         <div class="action-bar">
             <a href="index.html" class="back-btn">← 메인으로 돌아가기</a>
             <button class="btn-write" onclick="window.openModal()">새 회의록 작성</button>
         </div>
-        <div class="meeting-list" id="meetingList">
+        <div id="meetingList" class="meeting-list">
             <p style="text-align:center; color:var(--text-dim);">데이터를 불러오는 중입니다...</p>
         </div>
     </div>
@@ -78,9 +78,9 @@
             <h2 id="modalTitle">회의록 작성</h2>
             <input type="hidden" id="editKey">
             <div class="form-group"><label>날짜</label><input type="date" id="mDate"></div>
-            <div class="form-group"><label>회의 제목</label><input type="text" id="mTitle" placeholder="제목을 입력하세요"></div>
-            <div class="form-group"><label>참석자</label><input type="text" id="mAttendees" placeholder="참석자 명단을 입력하세요"></div>
-            <div class="form-group"><label>회의 내용</label><textarea id="mContent" placeholder="상세 내용을 입력하세요"></textarea></div>
+            <div class="form-group"><label>회의 제목</label><input type="text" id="mTitle" placeholder="회의 제목"></div>
+            <div class="form-group"><label>참석자</label><input type="text" id="mAttendees" placeholder="참석자 명단"></div>
+            <div class="form-group"><label>회의 내용</label><textarea id="mContent" placeholder="상세 내용"></textarea></div>
             <div class="modal-btns">
                 <button class="btn-tool" onclick="window.closeModal()">취소</button>
                 <button class="btn-write" id="saveBtn">저장하기</button>
@@ -92,12 +92,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-        // 사용자님의 Firebase 설정 및 Database URL 통합
         const firebaseConfig = {
             apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
             authDomain: "parataoe-769bb.firebaseapp.com",
             projectId: "parataoe-769bb",
-            databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com/", 
+            databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com/",
             storageBucket: "parataoe-769bb.firebasestorage.app",
             messagingSenderId: "964545748384",
             appId: "1:964545748384:web:f882221099022e4271d8c5",
@@ -108,18 +107,15 @@
         const db = getDatabase(app);
         const meetingsRef = ref(db, 'meetings');
 
-        // 실시간 데이터 렌더링
+        // 데이터 불러오기 및 렌더링
         onValue(meetingsRef, (snapshot) => {
             const data = snapshot.val();
             const list = document.getElementById('meetingList');
             list.innerHTML = '';
-            const currentMeetings = [];
-
             if (data) {
-                const keys = Object.keys(data).reverse(); // 최신순 정렬
+                const keys = Object.keys(data).reverse(); // 최신순
                 keys.forEach(key => {
                     const m = data[key];
-                    currentMeetings.push({ id: key, ...m });
                     list.innerHTML += `
                         <div class="meeting-item">
                             <div class="meeting-summary" onclick="window.toggleDetails('${key}')">
@@ -136,15 +132,12 @@
                             </div>
                         </div>`;
                 });
-                // 메인 페이지(index.html) 연동용 localStorage 동기화
-                localStorage.setItem('parataMeetings', JSON.stringify(currentMeetings));
             } else {
                 list.innerHTML = '<p style="text-align:center; color:var(--text-dim);">등록된 회의록이 없습니다.</p>';
-                localStorage.setItem('parataMeetings', JSON.stringify([]));
             }
         });
 
-        // 기능 함수 정의
+        // 전역 함수 정의 (HTML onclick 연동)
         window.saveMeeting = () => {
             const key = document.getElementById('editKey').value;
             const newData = {
@@ -153,7 +146,7 @@
                 attendees: document.getElementById('mAttendees').value,
                 content: document.getElementById('mContent').value
             };
-            if(!newData.title || !newData.content) return alert('제목과 내용을 입력해주세요.');
+            if(!newData.title || !newData.content) return alert('내용을 입력해주세요.');
 
             if(key === '') {
                 push(meetingsRef, newData); // 신규 저장
@@ -164,7 +157,7 @@
         };
 
         window.deleteMeeting = (key) => {
-            if(confirm('이 회의록을 삭제하시겠습니까?')) remove(ref(db, 'meetings/' + key)); // 삭제
+            if(confirm('삭제하시겠습니까?')) remove(ref(db, 'meetings/' + key));
         };
 
         window.prepareEdit = (key) => {
@@ -184,10 +177,8 @@
         window.openModal = () => {
             document.getElementById('editKey').value = '';
             document.getElementById('mDate').value = new Date().toISOString().substring(0, 10);
-            document.getElementById('mTitle').value = '';
-            document.getElementById('mAttendees').value = '';
-            document.getElementById('mContent').value = '';
-            document.getElementById('modalTitle').innerText = '회의록 작성';
+            document.getElementById('mTitle').value = ''; document.getElementById('mAttendees').value = '';
+            document.getElementById('mContent').value = ''; document.getElementById('modalTitle').innerText = '회의록 작성';
             document.getElementById('meetingModal').style.display = 'flex';
         };
         window.closeModal = () => document.getElementById('meetingModal').style.display = 'none';
