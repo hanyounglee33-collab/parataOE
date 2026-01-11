@@ -7,271 +7,191 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0f172a; 
-            --bg-deep: #020617;
-            --primary: #3b82f6;
-            --accent: #00f2ff;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
+            --bg-dark: #0f172a; --bg-deep: #020617; --primary: #3b82f6; --accent: #00f2ff;
+            --card-bg: rgba(30, 41, 59, 0.7); --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc; --text-dim: #94a3b8;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-
-        /* Navigation (Main과 동일한 화이트 헤더) */
-        nav {
-            position: fixed; top: 0; width: 100%; height: 85px; z-index: 1000;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
-            border-bottom: 1px solid #e2e8f0;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 4%;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; }
+        nav { position: fixed; top: 0; width: 100%; height: 85px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; padding: 0 4%; }
         .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
         .logo img { height: 40px; width: auto; }
         .logo-text { color: #0f172a; border-left: 1px solid #e2e8f0; padding-left: 15px; }
         .logo-text b { font-family: 'Montserrat'; font-size: 0.85rem; font-weight: 900; line-height: 1.2; }
-
-        /* Header Area */
-        .header-area {
-            padding: 150px 5% 50px;
-            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('main.png');
-            background-size: cover; background-position: center;
-            text-align: center;
-        }
+        .header-area { padding: 150px 5% 50px; background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('main.png'); background-size: cover; background-position: center; text-align: center; }
         .header-area h1 { font-family: 'Montserrat'; font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; }
         .header-area p { color: var(--accent); font-weight: 700; letter-spacing: 2px; }
-
-        /* Container */
         .container { max-width: 1100px; margin: 50px auto; padding: 0 20px; }
-        
         .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .back-btn { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
         .back-btn:hover { color: #fff; }
-
-        /* 작성 버튼 */
-        .btn-write {
-            background: var(--primary); color: #fff; border: none; padding: 12px 25px;
-            border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s;
-        }
+        .btn-write { background: var(--primary); color: #fff; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; }
         .btn-write:hover { background: #2563eb; transform: translateY(-3px); }
-
-        /* 회의록 리스트 스타일 */
         .meeting-list { display: flex; flex-direction: column; gap: 15px; }
-        .meeting-item {
-            background: var(--card-bg); border: 1px solid var(--card-border);
-            border-radius: 20px; overflow: hidden; transition: 0.3s;
-        }
+        .meeting-item { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; overflow: hidden; transition: 0.3s; }
         .meeting-item:hover { border-color: var(--accent); }
-
-        .meeting-summary {
-            padding: 20px 30px; cursor: pointer; display: grid;
-            grid-template-columns: 130px 1fr auto; align-items: center;
-        }
+        .meeting-summary { padding: 20px 30px; cursor: pointer; display: grid; grid-template-columns: 130px 1fr auto; align-items: center; }
         .date { color: var(--accent); font-family: 'Montserrat'; font-weight: 700; }
         .title { font-size: 1.1rem; color: #fff; font-weight: 600; }
         .attendees { font-size: 0.85rem; color: var(--text-dim); margin-right: 20px; }
-
-        .meeting-details {
-            display: none; padding: 30px; background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid var(--card-border);
-        }
+        .meeting-details { display: none; padding: 30px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid var(--card-border); }
         .meeting-details.active { display: block; animation: fadeIn 0.3s; }
         .content-text { color: #ffffff; line-height: 1.8; white-space: pre-wrap; margin-bottom: 20px; }
-
-        /* 수정/삭제 버튼 */
         .edit-tools { display: flex; gap: 10px; justify-content: flex-end; }
-        .btn-tool {
-            background: none; border: 1px solid var(--card-border); color: var(--text-dim);
-            padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
-        }
+        .btn-tool { background: none; border: 1px solid var(--card-border); color: var(--text-dim); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
         .btn-tool:hover { color: #fff; border-color: #fff; }
-
-        /* 입력 폼 모달 */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: #1e293b; padding: 40px; border-radius: 25px; width: 90%; max-width: 600px;
-            border: 1px solid var(--primary);
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: #1e293b; padding: 40px; border-radius: 25px; width: 90%; max-width: 600px; border: 1px solid var(--primary); }
         .modal-content h2 { margin-bottom: 25px; font-family: 'Montserrat'; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--accent); }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border);
-            background: #0f172a; color: #fff; outline: none;
-        }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: #0f172a; color: #fff; outline: none; }
         .form-group textarea { height: 150px; resize: none; }
         .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         footer { padding: 60px 5%; text-align: center; border-top: 1px solid var(--card-border); margin-top: 100px; }
     </style>
 </head>
 <body>
-
     <nav>
         <a href="index.html" class="logo">
             <img src="ci.png" alt="PARATA AIR CI">
-            <div class="logo-text">
-                <b>FLIGHT OPERATION<br>ENGINEERING TEAM</b>
-            </div>
+            <div class="logo-text"><b>FLIGHT OPERATION<br>ENGINEERING TEAM</b></div>
         </a>
     </nav>
-
     <div class="header-area">
         <h1>MEETING MINUTES</h1>
-        <p>운항기술팀 회의록</p>
+        <p>운항기술팀 회의록 (Firebase 실시간 연동)</p>
     </div>
-
     <div class="container">
         <div class="action-bar">
             <a href="index.html" class="back-btn">← 메인으로 돌아가기</a>
-            <button class="btn-write" onclick="openModal()">새 회의록 작성</button>
+            <button class="btn-write" onclick="window.openModal()">새 회의록 작성</button>
         </div>
-
         <div class="meeting-list" id="meetingList">
-            </div>
+            <p style="text-align:center; color:var(--text-dim);">데이터를 불러오는 중입니다...</p>
+        </div>
     </div>
 
     <div class="modal" id="meetingModal">
         <div class="modal-content">
             <h2 id="modalTitle">회의록 작성</h2>
-            <input type="hidden" id="editIndex">
-            <div class="form-group">
-                <label>날짜</label>
-                <input type="date" id="mDate">
-            </div>
-            <div class="form-group">
-                <label>회의 제목</label>
-                <input type="text" id="mTitle" placeholder="회의 제목을 입력하세요">
-            </div>
-            <div class="form-group">
-                <label>참석자</label>
-                <input type="text" id="mAttendees" placeholder="참석자 명단을 입력하세요">
-            </div>
-            <div class="form-group">
-                <label>회의 내용 (주요 안건 및 결과)</label>
-                <textarea id="mContent" placeholder="회의 상세 내용을 입력하세요"></textarea>
-            </div>
+            <input type="hidden" id="editKey">
+            <div class="form-group"><label>날짜</label><input type="date" id="mDate"></div>
+            <div class="form-group"><label>회의 제목</label><input type="text" id="mTitle" placeholder="제목을 입력하세요"></div>
+            <div class="form-group"><label>참석자</label><input type="text" id="mAttendees" placeholder="참석자 명단을 입력하세요"></div>
+            <div class="form-group"><label>회의 내용</label><textarea id="mContent" placeholder="상세 내용을 입력하세요"></textarea></div>
             <div class="modal-btns">
-                <button class="btn-tool" onclick="closeModal()">취소</button>
-                <button class="btn-write" onclick="saveMeeting()">저장하기</button>
+                <button class="btn-tool" onclick="window.closeModal()">취소</button>
+                <button class="btn-write" id="saveBtn">저장하기</button>
             </div>
         </div>
     </div>
 
-    <footer>
-        <b style="font-family: Montserrat; font-size: 1.2rem; color: var(--primary);">PARATA AIR</b>
-        <p style="margin-top: 10px; color: var(--text-dim); font-size: 0.8rem;">© 2026 Parata Air Operations Engineering. All rights reserved.</p>
-    </footer>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-    <script>
-        // 로컬 저장소에서 데이터 불러오기
-        let meetings = JSON.parse(localStorage.getItem('parataMeetings')) || [
-            { date: '2026-01-10', title: '주간 운항기술 정기 회의', attendees: '이한영 외 5명', content: '1. A321NEO 기재 도입 관련 Flysmart 업데이트 점검\n2. 상반기 CORSIA 탄소배출권 보고 체계 수립\n3. EFB 보안 정책 강화' }
-        ];
+        // 사용자님의 Firebase 설정 및 Database URL 통합
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
+            authDomain: "parataoe-769bb.firebaseapp.com",
+            projectId: "parataoe-769bb",
+            databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com/", 
+            storageBucket: "parataoe-769bb.firebasestorage.app",
+            messagingSenderId: "964545748384",
+            appId: "1:964545748384:web:f882221099022e4271d8c5",
+            measurementId: "G-5LJ4QR4XED"
+        };
 
-        function renderMeetings() {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const meetingsRef = ref(db, 'meetings');
+
+        // 실시간 데이터 렌더링
+        onValue(meetingsRef, (snapshot) => {
+            const data = snapshot.val();
             const list = document.getElementById('meetingList');
             list.innerHTML = '';
-            
-            meetings.forEach((m, index) => {
-                list.innerHTML += `
-                    <div class="meeting-item">
-                        <div class="meeting-summary" onclick="toggleDetails(${index})">
-                            <div class="date">${m.date}</div>
-                            <div class="title">${m.title}</div>
-                            <div class="attendees">${m.attendees}</div>
-                        </div>
-                        <div class="meeting-details" id="details-${index}">
-                            <div class="content-text">${m.content}</div>
-                            <div class="edit-tools">
-                                <button class="btn-tool" onclick="editMeeting(${index})">수정</button>
-                                <button class="btn-tool" onclick="deleteMeeting(${index})" style="color:#ff6b6b">삭제</button>
+            const currentMeetings = [];
+
+            if (data) {
+                const keys = Object.keys(data).reverse(); // 최신순 정렬
+                keys.forEach(key => {
+                    const m = data[key];
+                    currentMeetings.push({ id: key, ...m });
+                    list.innerHTML += `
+                        <div class="meeting-item">
+                            <div class="meeting-summary" onclick="window.toggleDetails('${key}')">
+                                <div class="date">${m.date}</div>
+                                <div class="title">${m.title}</div>
+                                <div class="attendees">${m.attendees}</div>
                             </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+                            <div class="meeting-details" id="details-${key}">
+                                <div class="content-text">${m.content}</div>
+                                <div class="edit-tools">
+                                    <button class="btn-tool" onclick="window.prepareEdit('${key}')">수정</button>
+                                    <button class="btn-tool" onclick="window.deleteMeeting('${key}')" style="color:#ff6b6b">삭제</button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                // 메인 페이지(index.html) 연동용 localStorage 동기화
+                localStorage.setItem('parataMeetings', JSON.stringify(currentMeetings));
+            } else {
+                list.innerHTML = '<p style="text-align:center; color:var(--text-dim);">등록된 회의록이 없습니다.</p>';
+                localStorage.setItem('parataMeetings', JSON.stringify([]));
+            }
+        });
 
-        function toggleDetails(index) {
-            const el = document.getElementById(`details-${index}`);
-            el.classList.toggle('active');
-        }
-
-        function openModal() {
-            document.getElementById('editIndex').value = '';
-            document.getElementById('mDate').value = new Date().toISOString().substring(0, 10);
-            document.getElementById('mTitle').value = '';
-            document.getElementById('mAttendees').value = '';
-            document.getElementById('mContent').value = '';
-            document.getElementById('modalTitle').innerText = '회의록 작성';
-            document.getElementById('meetingModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('meetingModal').style.display = 'none';
-        }
-
-        function saveMeeting() {
-            const index = document.getElementById('editIndex').value;
+        // 기능 함수 정의
+        window.saveMeeting = () => {
+            const key = document.getElementById('editKey').value;
             const newData = {
                 date: document.getElementById('mDate').value,
                 title: document.getElementById('mTitle').value,
                 attendees: document.getElementById('mAttendees').value,
                 content: document.getElementById('mContent').value
             };
+            if(!newData.title || !newData.content) return alert('제목과 내용을 입력해주세요.');
 
-            if(!newData.title || !newData.content) {
-                alert('제목과 내용을 입력해주세요.');
-                return;
-            }
-
-            if(index === '') {
-                meetings.unshift(newData); // 새 글은 맨 위로
+            if(key === '') {
+                push(meetingsRef, newData); // 신규 저장
             } else {
-                meetings[index] = newData; // 수정
+                update(ref(db, 'meetings/' + key), newData); // 수정
             }
+            window.closeModal();
+        };
 
-            localStorage.setItem('parataMeetings', JSON.stringify(meetings));
-            renderMeetings();
-            closeModal();
-        }
+        window.deleteMeeting = (key) => {
+            if(confirm('이 회의록을 삭제하시겠습니까?')) remove(ref(db, 'meetings/' + key)); // 삭제
+        };
 
-        function editMeeting(index) {
-            event.stopPropagation(); // 클릭 이벤트 전파 방지
-            const m = meetings[index];
-            document.getElementById('editIndex').value = index;
-            document.getElementById('mDate').value = m.date;
-            document.getElementById('mTitle').value = m.title;
-            document.getElementById('mAttendees').value = m.attendees;
-            document.getElementById('mContent').value = m.content;
-            document.getElementById('modalTitle').innerText = '회의록 수정';
+        window.prepareEdit = (key) => {
+            onValue(ref(db, 'meetings/' + key), (snapshot) => {
+                const m = snapshot.val();
+                document.getElementById('editKey').value = key;
+                document.getElementById('mDate').value = m.date;
+                document.getElementById('mTitle').value = m.title;
+                document.getElementById('mAttendees').value = m.attendees;
+                document.getElementById('mContent').value = m.content;
+                document.getElementById('modalTitle').innerText = '회의록 수정';
+                document.getElementById('meetingModal').style.display = 'flex';
+            }, { onlyOnce: true });
+        };
+
+        window.toggleDetails = (key) => document.getElementById('details-' + key).classList.toggle('active');
+        window.openModal = () => {
+            document.getElementById('editKey').value = '';
+            document.getElementById('mDate').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('mTitle').value = '';
+            document.getElementById('mAttendees').value = '';
+            document.getElementById('mContent').value = '';
+            document.getElementById('modalTitle').innerText = '회의록 작성';
             document.getElementById('meetingModal').style.display = 'flex';
-        }
-
-        function deleteMeeting(index) {
-            event.stopPropagation();
-            if(confirm('정말 삭제하시겠습니까?')) {
-                meetings.splice(index, 1);
-                localStorage.setItem('parataMeetings', JSON.stringify(meetings));
-                renderMeetings();
-            }
-        }
-
-        // 초기 실행
-        renderMeetings();
+        };
+        window.closeModal = () => document.getElementById('meetingModal').style.display = 'none';
+        document.getElementById('saveBtn').onclick = window.saveMeeting;
     </script>
 </body>
 </html>
