@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runway Performance & Limitation Analysis System</title>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 20px; min-height: 100vh; }
+
+        .container { max-width: 1800px; margin: 0 auto; background: var(--bg-card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 95vh; }
+
+        .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 25px 40px; border-bottom: 1px solid #1e293b; }
+        .header h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .sub-header-row { display: flex; align-items: center; gap: 20px; }
+        .header h2 { font-size: 16px; font-weight: 400; opacity: 0.9; }
+        .company-logo { max-height: 35px; background: white; padding: 4px 12px; border-radius: 6px; }
+
+        .content { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; }
+        .input-section { padding: 30px; background: #f8fafc; border-right: 1px solid var(--border-color); overflow-y: auto; }
+        .output-section { padding: 30px; background: #ffffff; overflow-y: auto; }
+
+        .section-title { font-size: 16px; color: var(--primary); margin-bottom: 20px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-light); font-weight: 700; text-transform: uppercase; }
+
+        .field-container { display: flex; flex-direction: column; }
+        .field-label { font-size: 11px; font-weight: 700; color: var(--secondary); margin-bottom: 6px; text-transform: uppercase; }
+        .input-group { display: flex; align-items: stretch; height: 40px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .input-group input { flex: 1; padding: 0 10px; border: 1px solid var(--border-color); border-right: none; font-size: 14px; }
+        .input-group .unit-addon { background: #f1f5f9; border: 1px solid var(--border-color); border-left: none; padding: 0 8px; display: flex; align-items: center; font-size: 11px; font-weight: 600; color: var(--secondary); min-width: 30px; }
+        select, .simple-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; background-color: white; }
+
+        .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .grid-airport { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 20px; }
+        .grid-env { display: grid; grid-template-columns: 90px 110px 1fr; gap: 12px; margin-bottom: 25px; }
+
+        .runway-item { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .runway-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
+        .runway-title { font-weight: 700; color: var(--primary); font-size: 14px; }
+        .runway-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 8px; margin-bottom: 8px; }
+
+        .btn { padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-calc { width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; margin-top: 20px; }
+        .btn-fetch { background: var(--primary); color: white; padding: 0 16px; height: 40px; }
+        .btn-add { background: #10b981; color: white; margin-bottom: 10px; }
+        .btn-remove { background: #fee2e2; color: #ef4444; padding: 4px 10px; font-size: 11px; width: auto; border-radius: 4px; }
+        .btn-export { background: #059669; color: white; display: none; float: right; padding: 8px 16px; margin-top: -5px; }
+
+        .summary-box { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        .report-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 25px; overflow: hidden; }
+        .report-card-header { background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: var(--text-main); font-size: 14px; }
+        
+        .perf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .perf-table th { background: #f1f5f9; padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 700; }
+        .perf-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+
+        .note-box { background: #fffbeb; border-left: 4px solid var(--warning); padding: 16px; border-radius: 6px; font-size: 13px; color: #78350f; margin-bottom: 15px; line-height: 1.6; }
+        .note-title { font-weight: 700; display: block; margin-bottom: 6px; color: #92400e; }
+
+        .badge { padding: 4px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        .footer { text-align: center; padding: 15px; background: #f8fafc; border-top: 1px solid var(--border-color); color: var(--secondary); font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Runway Performance & Limitation Analysis System</h1>
+            <div class="sub-header-row">
+                <h2>Aircraft Performance Calculator</h2>
+                <img src="ci.png" alt="Parata Air Logo" class="company-logo">
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">1. Aircraft & Environment</h2>
+                <div class="grid-equal">
+                    <div class="field-container"><label class="field-label">Aircraft Type</label>
+                        <select id="aircraftType" onchange="updateAircraftDefaults()">
+                            <option value="">Select Type</option>
+                            <option value="A322">A322</option>
+                            <option value="A332">A332</option>
+                            <option value="A350">A350</option>
+                        </select>
+                    </div>
+                    <div class="field-container"><label class="field-label">ACR</label><input type="text" id="acr" placeholder="e.g. 610/R/A" class="simple-input"></div>
+                </div>
+                <div class="grid-equal">
+                    <div class="field-container"><label class="field-label">MTOW</label><div class="input-group"><input type="number" id="mtow"><span class="unit-addon">kg</span></div></div>
+                    <div class="field-container"><label class="field-label">MLW</label><div class="input-group"><input type="number" id="mlw"><span class="unit-addon">kg</span></div></div>
+                </div>
+                <div class="grid-airport">
+                    <div class="field-container"><label class="field-label">Airport (ICAO)</label><input type="text" id="airport" placeholder="RKSI" class="simple-input"></div>
+                    <div class="field-container"><label class="field-label">Elevation</label><div class="input-group"><input type="number" id="elevation"><span class="unit-addon">ft</span></div></div>
+                    <button type="button" class="btn btn-fetch" onclick="fetchAirportData()">🌐 Get Data</button>
+                </div>
+                <div class="grid-env">
+                    <div class="field-container"><label class="field-label">OAT</label><div class="input-group"><input type="number" id="oat" value="15"><span class="unit-addon">°C</span></div></div>
+                    <div class="field-container"><label class="field-label">QNH</label><div class="input-group"><input type="number" id="qnh" value="1013"><span class="unit-addon">hPa</span></div></div>
+                    <div class="field-container"><label class="field-label">Wind</label><select id="windComponent"><option value="calm">Calm</option><option value="tailwind10">Tailwind 10 kt</option><option value="headwind10">Headwind 10 kt</option></select></div>
+                </div>
+                <button type="button" class="btn btn-add" onclick="addRunwayItem()">➕ Add Runway</button>
+                <div id="runwaysContainer"></div>
+                <button type="button" class="btn btn-calc" onclick="calculatePerformance()">🚀 Calculate Performance</button>
+            </div>
+
+            <div class="output-section">
+                <button id="exportWord" class="btn btn-export" onclick="exportToWord()">📄 Download Word</button>
+                <h2 class="section-title">📊 Analysis Report</h2>
+                <div id="outputContent"></div>
+            </div>
+        </div>
+        <div class="footer">copyright by LEE HAN YOUNG</div>
+    </div>
+
+    <script>
+        let runwayCounter = 0;
+        const aircraftDB = { 'A322': { mtow: 75500, mlw: 66000, acr: '460/R/A' }, 'A332': { mtow: 233000, mlw: 182000, acr: '610/R/A' }, 'A350': { mtow: 280000, mlw: 205000, acr: '85' } };
+
+        function updateAircraftDefaults() {
+            const type = document.getElementById('aircraftType').value;
+            if(aircraftDB[type]) {
+                document.getElementById('mtow').value = aircraftDB[type].mtow;
+                document.getElementById('mlw').value = aircraftDB[type].mlw;
+                document.getElementById('acr').value = aircraftDB[type].acr;
+            }
+        }
+
+        function addRunwayItem(data = null) {
+            runwayCounter++;
+            const id = `rw-${runwayCounter}`;
+            const div = document.createElement('div');
+            div.className = 'runway-item'; div.id = id;
+            const gMtow = document.getElementById('mtow').value;
+            const gMlw = document.getElementById('mlw').value;
+            div.innerHTML = `
+                <div class="runway-header"><span class="runway-title">Runway ${runwayCounter}</span><button type="button" class="btn btn-remove" onclick="removeRunway('${id}')">Remove</button></div>
+                <div class="runway-row">
+                    <div class="field-container"><label class="field-label">Designator</label><input type="text" class="rw-ident simple-input" value="${data?data.ident:''}"></div>
+                    <div class="field-container"><label class="field-label">Surface</label><input type="text" class="rw-surface simple-input" value="${data?data.surface:''}"></div>
+                    <div class="field-container"><label class="field-label">PCR</label><input type="text" class="rw-pcr simple-input" value="610/R/A/W/U"></div>
+                    <div class="field-container"><label class="field-label">Length</label><div class="input-group"><input type="number" class="rw-len" value="${data?data.len:''}"><span class="unit-addon">m</span></div></div>
+                </div>
+                <div class="runway-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="field-container"><label class="field-label">RTOW</label><div class="input-group"><input type="number" class="rw-rtow" value="${gMtow}"><span class="unit-addon">kg</span></div></div>
+                    <div class="field-container"><label class="field-label">PEFLW</label><div class="input-group"><input type="number" class="rw-peflw" value="${gMlw}"><span class="unit-addon">kg</span></div></div>
+                </div>
+                <div class="runway-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="field-container"><label class="field-label">RLD Dry</label><div class="input-group"><input type="number" class="rw-rld-dry" value="2500"><span class="unit-addon">m</span></div></div>
+                    <div class="field-container"><label class="field-label">RLD Wet</label><div class="input-group"><input type="number" class="rw-rld-wet" value="2600"><span class="unit-addon">m</span></div></div>
+                </div>`;
+            document.getElementById('runwaysContainer').appendChild(div);
+        }
+
+        function removeRunway(id) { document.getElementById(id).remove(); }
+
+        async function fetchAirportData() {
+            const icao = document.getElementById('airport').value.trim().toUpperCase();
+            if(icao.length < 4) return;
+            try {
+                const resA = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
+                const csvA = Papa.parse(await resA.text(), {header:true, skipEmptyLines:true}).data;
+                const resR = await fetch('https://davidmegginson.github.io/ourairports-data/runways.csv');
+                const csvR = Papa.parse(await resR.text(), {header:true, skipEmptyLines:true}).data;
+                const airport = csvA.find(a => a.ident === icao);
+                if(airport) document.getElementById('elevation').value = Math.round(airport.elevation_ft);
+                const runways = csvR.filter(r => r.airport_ident === icao);
+                document.getElementById('runwaysContainer').innerHTML = ''; runwayCounter = 0;
+                runways.forEach(r => {
+                    const lenM = Math.round(parseFloat(r.length_ft)*0.3048);
+                    if(r.le_ident) addRunwayItem({ident:r.le_ident, len:lenM, surface:r.surface});
+                    if(r.he_ident) addRunwayItem({ident:r.he_ident, len:lenM, surface:r.surface});
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        let lastReport = null;
+        function calculatePerformance() {
+            const acrRaw = document.getElementById('acr').value;
+            const inputs = { acType: document.getElementById('aircraftType').value, mtow: parseFloat(document.getElementById('mtow').value)||0, mlw: parseFloat(document.getElementById('mlw').value)||0, acrStr: acrRaw, acr: parseFloat(acrRaw)||0, airport: document.getElementById('airport').value, elevation: document.getElementById('elevation').value||'-', oat: document.getElementById('oat').value, qnh: document.getElementById('qnh').value, wind: document.getElementById('windComponent').value };
+            
+            // Parsing ACR String for advanced logic
+            const acrParts = acrRaw.split('/');
+            const acrType = acrParts[1] ? acrParts[1].toUpperCase() : '';
+            const acrGrade = acrParts[2] ? acrParts[2].toUpperCase() : '';
+
+            const runways = Array.from(document.querySelectorAll('.runway-item')).map(item => ({
+                ident: item.querySelector('.rw-ident').value, surface: item.querySelector('.rw-surface').value, pcrStr: item.querySelector('.rw-pcr').value, pcr: parseFloat(item.querySelector('.rw-pcr').value)||0, len: parseFloat(item.querySelector('.rw-len').value), rtow: parseFloat(item.querySelector('.rw-rtow').value), peflw: parseFloat(item.querySelector('.rw-peflw').value), rldDry: parseFloat(item.querySelector('.rw-rld-dry').value), rldWet: parseFloat(item.querySelector('.rw-rld-wet').value)
+            }));
+
+            const results = runways.map(rw => {
+                let overload = 0, strMsg = "OK", strRes = "Suitable", limitWt = inputs.mtow;
+                const acrVal = inputs.acr;
+                const pcrVal = rw.pcr;
+
+                if (acrVal > pcrVal) {
+                    // Custom Calculation Logic based on User Request
+                    if (inputs.acType === 'A332') {
+                        const table = {
+                            'R': { 'A': 610, 'B': 700, 'C': 790, 'D': 890 },
+                            'F': { 'A': 560, 'B': 590, 'C': 650, 'D': 790 }
+                        };
+                        const refACR = table[acrType] ? table[acrType][acrGrade] : null;
+                        if (refACR) {
+                            limitWt = (233000 / refACR) * pcrVal;
+                            overload = ((acrVal - pcrVal) / pcrVal * 100).toFixed(1);
+                            strMsg = `Over ${overload}%`;
+                            strRes = "Unsuitable";
+                        }
+                    } else if (inputs.acType === 'A322') {
+                        const table = {
+                            'R': { 'A': 460, 'B': 480, 'C': 500, 'D': 520 },
+                            'F': { 'A': 350, 'B': 380, 'C': 410, 'D': 460 }
+                        };
+                        const refACR = table[acrType] ? table[acrType][acrGrade] : null;
+                        if (refACR) {
+                            limitWt = (75500 / refACR) * pcrVal;
+                            overload = ((acrVal - pcrVal) / pcrVal * 100).toFixed(1);
+                            strMsg = `Over ${overload}%`;
+                            strRes = "Unsuitable";
+                        }
+                    } else {
+                        // Standard logic for other types (e.g. A350)
+                        overload = ((acrVal - pcrVal) / pcrVal * 100).toFixed(1);
+                        strMsg = `Over ${overload}%`;
+                        strRes = "Unsuitable";
+                        limitWt = inputs.mtow * (pcrVal / acrVal);
+                    }
+                }
+
+                const marDry = rw.len - rw.rldDry, marWet = rw.len - rw.rldWet;
+                return { ...rw, overload, strMsg, strRes, limitWt, marDry, marWet, ldgRes: (marDry > 0 && marWet > 0) ? "Suitable" : "Unsuitable" };
+            });
+
+            lastReport = { inputs, results }; renderReport(lastReport);
+            document.getElementById('exportWord').style.display = 'block';
+        }
+
+        function renderReport(data) {
+            const div = document.getElementById('outputContent');
+            const summaryTable = `<div class="summary-box"><table class="summary-table"><tr><th>Airport</th><td>${data.inputs.airport} (Elev: ${data.inputs.elevation} ft)</td><th>Environment</th><td>${data.inputs.oat}°C / ${data.inputs.qnh} hPa / ${data.inputs.wind}</td></tr><tr class="summary-divider"><td colspan="4"></td></tr><tr><th>Aircraft</th><td>${data.inputs.acType} (ACR: ${data.inputs.acrStr})</td><th>Weights</th><td>MTOW: ${data.inputs.mtow.toLocaleString()} / MLW: ${data.inputs.mlw.toLocaleString()}</td></tr></table></div>`;
+            const table1 = `<div class="report-card"><div class="report-card-header">1. Takeoff Analysis</div><table class="perf-table"><thead><tr><th>RWY</th><th>Surface</th><th>PCR</th><th>Strength Analysis</th><th>Length</th><th>RTOW</th><th>Result</th></tr></thead><tbody>
+                ${data.results.map(r => `<tr><td><strong>${r.ident}</strong></td><td>${r.surface}</td><td>${r.pcrStr||'-'}</td><td>${r.strMsg}</td><td>${r.len.toLocaleString()}</td><td>${r.rtow.toLocaleString()}</td><td><span class="badge ${r.strRes==='Suitable'?'badge-success':'badge-danger'}">${r.strRes}</span></td></tr>`).join('')}
+                </tbody></table></div>`;
+            const table2 = `<div class="report-card"><div class="report-card-header">2. Landing Analysis</div><table class="perf-table"><thead><tr><th>RWY</th><th>Length</th><th>PEFLW</th><th>RLD D</th><th>RLD W</th><th>Margin(D)</th><th>Margin(W)</th><th>Result</th></tr></thead><tbody>
+                ${data.results.map(r => `<tr><td><strong>${r.ident}</strong></td><td>${r.len.toLocaleString()}</td><td>${r.peflw.toLocaleString()}</td><td>${r.rldDry}</td><td>${r.rldWet}</td><td>${Math.round(r.marDry)}</td><td>${Math.round(r.marWet)}</td><td><span class="badge ${r.ldgRes==='Suitable'?'badge-success':'badge-danger'}">${r.ldgRes}</span></td></tr>`).join('')}
+                </tbody></table></div>`;
+            
+            const noteContent = data.results.map(r => `<li>[RWY ${r.ident}] PCR: ${r.pcrStr || '-'} / ACR: ${data.inputs.acrStr} (${r.strRes})${r.overload > 0 ? ` - MTOW Restricted to ${Math.floor(r.limitWt).toLocaleString()} kg` : ''}</li>`).join('');
+            const noteSection = `<div class="report-card"><div class="report-card-header">3. Operational Analysis Note</div><div style="padding:15px;"><div class="note-box"><span class="note-title">⚠️ Remarks & Restrictions:</span><ul style="padding-left:20px; margin:0;">${noteContent}</ul></div></div></div>`;
+            
+            div.innerHTML = summaryTable + table1 + table2 + noteSection;
+        }
+
+        function exportToWord() {
+            if(!lastReport) return;
+            const { Document, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel } = docx;
+            const d = lastReport;
+            const header = (txt) => new TableCell({ children: [new Paragraph({ text: txt, bold: true, alignment: AlignmentType.CENTER, color: "FFFFFF" })], shading: { fill: "1e3c72" } });
+            const cell = (txt) => new TableCell({ children: [new Paragraph({ text: String(txt||'-'), alignment: AlignmentType.CENTER })] });
+            
+            const doc = new Document({ sections: [{ children: [
+                new Paragraph({ text: "공항 안전적합성 검토자료", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
+                new Paragraph({ text: `AIRPORT: ${d.inputs.airport} | AIRCRAFT: ${d.inputs.acType}`, alignment: AlignmentType.CENTER }),
+                new Paragraph({ text: "1. TAKEOFF Analysis", heading: HeadingLevel.HEADING_2, spacing: { before: 200 } }),
+                new Paragraph({ text: `CONDITION : MTOW ${d.inputs.mtow.toLocaleString()} kg, ${d.inputs.oat} ° C, ${d.inputs.qnh}HPA, Wind ${d.inputs.wind}, Dry Runway` }),
+                new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: ["RWY", "Surface", "PCR", "Strength Analysis", "Length", "RTOW", "Result"].map(header) }), ...d.results.map(r => new TableRow({ children: [cell(r.ident), cell(r.surface), cell(r.pcrStr), cell(r.strMsg), cell(r.len), cell(r.rtow), cell(r.strRes)] }))] }),
+                new Paragraph({ text: "2. Landing Analysis", heading: HeadingLevel.HEADING_2, spacing: { before: 200 } }),
+                new Paragraph({ text: `CONDITION : AP ELEVATION ${d.inputs.elevation} ft, ${d.inputs.oat} ° C, ${d.inputs.qnh}HPA, Wind ${d.inputs.wind}` }),
+                new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ children: ["RWY", "Length", "PEFLW", "RLD D", "RLD W", "Margin(D)", "Margin(W)", "Result"].map(header) }), ...d.results.map(r => new TableRow({ children: [cell(r.ident), cell(r.len), cell(r.peflw), cell(r.rldDry), cell(r.rldWet), cell(Math.round(r.marDry)), cell(Math.round(r.marWet)), cell(r.ldgRes)] }))] }),
+                new Paragraph({ text: "Operational Analysis Note:", spacing: { before: 300 }, bold: true }),
+                ...d.results.map(r => new Paragraph({ text: `- [RWY ${r.ident}] PCR: ${r.pcrStr || '-'} / ACR: ${d.inputs.acrStr} (${r.strRes})${r.overload > 0 ? ` - MTOW Restricted to ${Math.floor(r.limitWt).toLocaleString()} kg` : ''}` }))
+            ] }] });
+            docx.Packer.toBlob(doc).then(blob => saveAs(blob, `Perf_${d.inputs.airport}.docx`));
+        }
+        window.addEventListener('DOMContentLoaded', () => addRunwayItem());
+    </script>
+</body>
+</html>

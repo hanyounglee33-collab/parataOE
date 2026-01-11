@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko" style="scroll-padding-top: 85px;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARATA AIR | 운항기술팀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-deep: #020617;
+            --primary: #3b82f6;
+            --accent: #00f2ff;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        /* --- 로그인 모달 스타일 --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(2, 6, 23, 0.9);
+            display: none; justify-content: center; align-items: center;
+            z-index: 10000;
+        }
+        .login-box {
+            background: #1e293b; border: 1px solid var(--primary);
+            padding: 50px; border-radius: 30px; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+        }
+        .login-box h2 { font-family: 'Montserrat'; color: #fff; margin-bottom: 30px; font-size: 1.5rem; }
+        .login-input {
+            width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
+            border: 1px solid var(--card-border); background: var(--bg-dark); color: #fff; outline: none;
+        }
+        .login-btn {
+            width: 100%; padding: 15px; background: var(--primary); color: #fff;
+            border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        .login-btn:hover { background: #2563eb; }
+        .close-login { color: var(--text-dim); font-size: 0.8rem; margin-top: 15px; cursor: pointer; display: block; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 85px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 4%;
+        }
+        .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; height: 100%; }
+        .logo img { height: 40px; width: auto; display: block; }
+        .logo-text { color: #0f172a; border-left: 1px solid #e2e8f0; padding-left: 15px; display: flex; align-items: center; height: 40px; }
+        .logo-text b { font-family: 'Montserrat'; font-size: 0.85rem; letter-spacing: 0.5px; font-weight: 900; display: block; line-height: 1.2; }
+        
+        .nav-links { display: flex; gap: 1.4rem; list-style: none; align-items: center; }
+        .nav-links a { text-decoration: none; color: #475569; font-size: 0.85rem; font-weight: 700; transition: 0.3s; text-transform: uppercase; cursor: pointer; }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* --- 상단 비주얼 영역 --- */
+        .top-visual-wrapper {
+            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), url('main.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            position: relative; padding-top: 85px;
+        }
+        .hero { height: 50vh; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; }
+        .hero-content h1 { font-family: 'Montserrat'; font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.1; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 15px; }
+        .hero-sub-blue { color: var(--primary); font-family: 'Montserrat'; font-size: 1.2rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        /* Section Settings */
+        .section-padding { padding: 100px 5%; max-width: 1550px; margin: 0 auto; }
+        .section-header { margin-bottom: 60px; text-align: center; }
+        .section-header h2 { font-family: 'Montserrat'; font-size: 2.5rem; font-weight: 900; margin-bottom: 12px; color: #fff; }
+        .section-header p { color: var(--accent); font-weight: 700; font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* 카드 및 그리드 정렬 */
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
+        .bento-item { background: var(--card-bg); border: 1px solid var(--card-border); padding: 40px; border-radius: 28px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; height: 100%; }
+        .bento-item:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.2); transform: translateY(-10px) scale(1.02); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
+        .bento-item h3 { font-size: 1.4rem; margin-bottom: 25px; color: var(--accent); font-weight: 800; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; }
+        .bento-item ul { list-style: none; flex-grow: 1; }
+        .bento-item li { color: #ffffff; font-size: 0.95rem; margin-bottom: 12px; display: flex; gap: 12px; line-height: 1.5; }
+        .bento-item li::before { content: '→'; color: var(--primary); font-weight: bold; }
+
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 30px; align-items: stretch; }
+        .member-card { background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--card-border); border-radius: 28px; padding: 40px 30px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; height: 100%; }
+        .member-card:hover { border-color: var(--accent); transform: translateY(-12px); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6); }
+        .photo-slot { width: 120px; height: 120px; border-radius: 24px; background-size: cover; background-position: center; margin-bottom: 25px; border: 2px solid var(--card-border); }
+        .member-name { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 5px; text-align: center; }
+        .member-role { color: var(--accent); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; text-align: center; letter-spacing: 0.5px; }
+        .task-list { list-style: none; width: 100%; flex-grow: 1; }
+        .task-list li { color: #ffffff; font-size: 0.85rem; margin-bottom: 10px; position: relative; padding-left: 20px; line-height: 1.6; }
+        .task-list li::before { content: '•'; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+
+        /* --- 회의록 섹션 리스트 스타일 --- */
+        .recent-meetings-container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .meeting-link-item {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            padding: 20px 35px; border-radius: 15px; display: flex; justify-content: space-between;
+            align-items: center; text-decoration: none; transition: 0.3s; cursor: pointer;
+        }
+        .meeting-link-item:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.15); transform: translateX(10px); }
+        .m-title { font-size: 1.1rem; color: #fff; font-weight: 600; }
+        .m-info { font-size: 0.85rem; color: var(--text-dim); }
+
+        .partners-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px; }
+        .partner-link { text-decoration: none; display: block; height: 100%; }
+        .partner-card { background: rgba(255,255,255,0.03); padding: 30px 20px; border-radius: 20px; text-align: center; color: #fff; font-weight: 700; transition: 0.3s; border: 1px solid var(--card-border); height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .partner-card:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.15); transform: translateY(-5px); }
+        .partner-card small { display: block; font-size: 0.75rem; color: var(--accent); margin-top: 8px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        footer { padding: 80px 5% 40px; border-top: 1px solid var(--card-border); text-align: center; background: var(--bg-deep); }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <img src="ci.png" alt="Logo" style="height: 40px; margin-bottom: 20px;">
+        <h2>AUTHENTICATION</h2>
+        <input type="text" id="userID" class="login-input" placeholder="ID">
+        <input type="password" id="userPW" class="login-input" placeholder="Password">
+        <button class="login-btn" onclick="checkLogin()">로그인</button>
+        <span class="close-login" onclick="hideLogin()">취소</span>
+    </div>
+</div>
+
+<nav>
+    <a href="#" class="logo">
+        <img src="ci.png" alt="PARATA AIR CI">
+        <div class="logo-text"><b>FLIGHT OPERATION<br>ENGINEERING TEAM</b></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="#major-duties">업무소개</a></li>
+        <li><a href="#team">팀원 소개</a></li>
+        <li><a href="#accounting">회계관리</a></li>
+        <li><a href="#performance">PERFORMANCE</a></li>
+        <li><a href="#minutes">회의록</a></li> <li><a href="#board">게시판</a></li>
+    </ul>
+</nav>
+
+<div class="top-visual-wrapper">
+    <section class="hero">
+        <div class="hero-content">
+            <span style="color: #fff; background: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1.5rem; display: inline-block; font-size: 0.8rem;">A Winix Group Member</span>
+            <h1>Engineering Trust, Delivering Safety</h1>
+            <p class="hero-sub-blue">Flight Operation Engineering Team</p>
+        </div>
+    </section>
+
+    <section id="major-duties" style="padding: 60px 5% 100px; max-width: 1550px; margin: 0 auto;">
+        <div class="section-header"><h2>업무소개</h2><p>WORK INTRODUCTION</p></div>
+        <div class="bento-grid">
+            <div class="bento-item"><h3>⚖️ 운항 기준 / OPSPEC</h3><ul><li>운영기준(Opspec) 제·개정 관리</li><li>항공기 매뉴얼 Customization</li><li>MEL/CDL 변경내용 검토</li></ul></div>
+            <div class="bento-item"><h3>📊 운항 성능 / NAV</h3><ul><li>이착륙 및 순항 성능 데이터 분석</li><li>기번별 성능 감시 및 연료 효율</li><li>특수 항법 인허가</li></ul></div>
+            <div class="bento-item"><h3>📱 운항 정보 / EFB</h3><ul><li>EFB MDM 보안 및 기기 제어</li><li>Flysmart Gateway 및 서버 점검</li><li>NavData 업데이트 배포</li></ul></div>
+        </div>
+    </section>
+</div>
+
+<section id="team" class="section-padding">
+    <div class="section-header"><h2>팀원 소개</h2><p>TEAM MEMBERS</p></div>
+    <div class="team-grid">
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('LHY.jfif');"></div>
+            <div class="member-name">이한영 기장</div>
+            <p class="member-role">운항기술팀장</p>
+            <ul class="task-list"><li>운항기술/운항성능 업무 총괄</li><li>장거리항법(EDTO, RVSM) 및 인허가 총괄</li><li>EFB 관련 업무 총괄 (소프트웨어 전반)</li></ul>
+        </div>
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('PNJ.jfif');"></div>
+            <div class="member-name">박남준 부장</div>
+            <p class="member-role">운항기술 담당</p>
+            <ul class="task-list"><li>운항 매뉴얼(AFM, FCOM, Airway) 발간 배포</li><li>운영기준 개정 및 국토부 제반 업무</li><li>항공기 성능관리, 노선분석 및 W&B 관리감독</li></ul>
+        </div>
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('LYB.jfif');"></div>
+            <div class="member-name">이율비사원</div>
+            <p class="member-role">운항정보/EFB 담당</p>
+            <ul class="task-list"><li>Flysmart Gateway 관리 및 FODM 서버 점검/Backup</li><li>JPSN FD-Pro, NavData 업데이트 사항 점검 및 배포</li><li>EFB 추가도입 및 MDM 시스템 구축 운영</li></ul>
+        </div>
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('DJY.jfif');"></div>
+            <div class="member-name">도재윤 부기장</div>
+            <p class="member-role">운항기술/성능 담당</p>
+            <ul class="task-list"><li>필수 운항도서 개정 및 항공기 탑재도서 관리</li><li>CORSIA MRV 업무 및 장비 표준화 관리</li><li>EDTO 운항승인 및 안전적합성평가 실시</li></ul>
+        </div>
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('LJH.jfif');"></div>
+            <div class="member-name">이종헌 부기장</div>
+            <p class="member-role">기술분석 및 계약 담당</p>
+            <ul class="task-list"><li>JPSN/NavBlue S/W 월간 사용료 검토 및 지급품의</li><li>Jeppesen & Navblue 계약 갱신 및 관리</li><li>FCOM/QRH 매뉴얼 개정 신고 및 배포 공지</li></ul>
+        </div>
+        <div class="member-card">
+            <div class="photo-slot" style="background-image: url('PJW.jfif');"></div>
+            <div class="member-name">박정원 사원</div>
+            <p class="member-role">운항성능/기준 담당</p>
+            <ul class="task-list"><li>순항/이착륙 성능 Data 관리 및 Opspec 개정</li><li>W&B 시스템 구축 및 Load Sheet 적절성 검토</li><li>교체공항 검토 및 RVSM 운항절차 인가</li></ul>
+        </div>
+    </div>
+</section>
+
+<section id="accounting" class="section-padding">
+    <div class="section-header"><h2>회계관리</h2><p>ACCOUNTING</p></div>
+    <div class="bento-grid">
+        <div class="bento-item"><h3>💰 예산 관리</h3><ul><li>연간 S/W 라이선스 예산 편성</li></ul></div>
+        <div class="bento-item"><h3>💳 지급 관리</h3><ul><li><a onclick="handleProtectedLink('INVOICE.html')" style="color:#fff; text-decoration:none; cursor:pointer;">지급 상세 보기</a></li></ul></div>
+        <div class="bento-item"><h3>📜 계약 관리</h3><ul><li><a onclick="handleProtectedLink('contract.html')" style="color:#fff; text-decoration:none; cursor:pointer;">S/W 사용 및 업무 계약서</a></li></ul></div>
+    </div>
+</section>
+
+<section id="performance" class="section-padding" style="background: rgba(255,255,255,0.01);">
+    <div class="section-header"><h2>PERFORMANCE ANALYSIS</h2><p>운항 성능 분석</p></div>
+    <div class="bento-grid">
+        <div class="bento-item"><h3>🛫 Airport Runway Analysis</h3><ul><li><a onclick="handleProtectedLink('Performance Analysis.html')" style="color:#fff; text-decoration:none; cursor:pointer;">활주로 성능 분석</a></li></ul></div>
+        <div class="bento-item"><h3>⛽ Fuel Efficiency</h3><ul><li>기번별 연료 최적화 분석</li></ul></div>
+        <div class="bento-item"><h3>⚖️ Weight & Balance</h3><ul><li>Trim Sheet 적절성 검토</li></ul></div>
+    </div>
+</section>
+
+<section id="minutes" class="section-padding">
+    <div class="section-header"><h2>회의록</h2><p>RECENT MEETING MINUTES</p></div>
+    <div class="recent-meetings-container" id="recentMeetingsList">
+        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
+            <div class="m-info">2026.01.10</div>
+            <div class="m-title">주간 운항기술 정기 회의</div>
+            <div class="m-info">이한영 외 5명</div>
+        </div>
+        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
+            <div class="m-info">2026.01.03</div>
+            <div class="m-title">신규 취항 노선 성능 분석 검토</div>
+            <div class="m-info">박남준, 박정원</div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 40px;">
+        <a onclick="handleProtectedLink('meeting.html')" style="display:inline-block; padding:15px 40px; background:var(--primary); color:#fff; text-decoration:none; border-radius:50px; font-weight:700; cursor:pointer; transition:0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">회의록 시스템 접속</a>
+    </div>
+</section>
+
+<section id="board" class="section-padding" style="background: rgba(255,255,255,0.01);">
+    <div class="section-header"><h2>게시판</h2><p>BULLETIN BOARD</p></div>
+    <div class="bento-grid">
+        <div class="bento-item"><h3>📢 공지사항</h3><ul><li>운항기술정보 업데이트 알림</li></ul></div>
+        <div class="bento-item"><h3>📂 자료실</h3><ul><li>매뉴얼 및 NavData 다운로드</li></ul></div>
+        <div class="bento-item"><h3>❓ Q&A</h3><ul><li>기술지원 문의 게시판</li></ul></div>
+    </div>
+</section>
+
+<section id="partners" class="section-padding">
+    <div class="section-header"><h2>PARTNERS</h2></div>
+    <div class="partners-grid">
+        <a href="https://www.airbusworld.com/" target="_blank" class="partner-link"><div class="partner-card">Airbus World<small>AirbusWorld Login page</small></div></a>
+        <a href="https://ww2.jeppesen.com/" target="_blank" class="partner-link"><div class="partner-card">Jeppesen<small>Homepage - Jeppesen</small></div></a>
+        <a href="https://www.navblue.aero/" target="_blank" class="partner-link"><div class="partner-card">Navblue<small>Home page - NAVBLUE</small></div></a>
+        <a href="http://www.molit.go.kr/" target="_blank" class="partner-link"><div class="partner-card">국토교통부<small>국토교통부</small></div></a>
+    </div>
+</section>
+
+<footer>
+    <b style="font-family: Montserrat; font-size: 1.4rem;">PARATA AIR</b>
+    <p style="margin-top: 10px; color: var(--text-dim);">Fly New - A WINIX COMPANY</p>
+    <div class="copyright" style="margin-top: 30px;">© 2026 Parata Air Operations Engineering Team.</div>
+</footer>
+
+<script>
+    let pendingUrl = "";
+
+    function handleProtectedLink(url) {
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            window.open(url, '_blank');
+        } else {
+            pendingUrl = url;
+            document.getElementById('login-overlay').style.display = 'flex';
+        }
+    }
+
+    function hideLogin() {
+        document.getElementById('login-overlay').style.display = 'none';
+        pendingUrl = "";
+    }
+
+    function checkLogin() {
+        const id = document.getElementById('userID').value;
+        const pw = document.getElementById('userPW').value;
+        if (id === "parataOE" && pw === "toga") {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            document.getElementById('login-overlay').style.display = 'none';
+            if (pendingUrl) { window.open(pendingUrl, '_blank'); pendingUrl = ""; }
+        } else { alert("로그인 정보가 올바르지 않습니다."); }
+    }
+
+    document.getElementById('userPW').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkLogin(); });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) { window.scrollTo({ top: target.offsetTop, behavior: 'smooth' }); }
+        });
+    });
+
+    function updateRecentMeetings() {
+        const stored = localStorage.getItem('parataMeetings');
+        if (stored) {
+            const meetings = JSON.parse(stored);
+            const listArea = document.getElementById('recentMeetingsList');
+            if (meetings && meetings.length > 0) {
+                listArea.innerHTML = '';
+                meetings.slice(0, 2).forEach(m => {
+                    listArea.innerHTML += `
+                        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
+                            <div class="m-info">${m.date}</div>
+                            <div class="m-title">${m.title}</div>
+                            <div class="m-info">${m.attendees}</div>
+                        </div>
+                    `;
+                });
+            }
+        }
+    }
+    window.onload = updateRecentMeetings;
+</script>
+
+</body>
+</html>

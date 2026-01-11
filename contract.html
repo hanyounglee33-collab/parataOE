@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계약관리 시스템 | PARATA AIR 운항기술팀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a; 
+            --bg-deep: #020617;
+            --primary: #3b82f6;
+            --accent: #00f2ff;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 85px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 4%;
+        }
+        .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; }
+        .logo img { height: 40px; width: auto; }
+        .logo-text { color: #0f172a; border-left: 1px solid #e2e8f0; padding-left: 15px; }
+        .logo-text b { font-family: 'Montserrat'; font-size: 0.85rem; font-weight: 900; line-height: 1.2; }
+
+        /* Header Area */
+        .header-area {
+            padding: 150px 5% 50px;
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('main.png');
+            background-size: cover; background-position: center;
+            text-align: center;
+        }
+        .header-area h1 { font-family: 'Montserrat'; font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; }
+        .header-area p { color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Container */
+        .container { max-width: 1300px; margin: 50px auto; padding: 0 20px; }
+        
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .btn-add {
+            background: var(--primary); color: #fff; border: none; padding: 12px 25px;
+            border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        .btn-add:hover { background: #2563eb; transform: translateY(-3px); }
+
+        /* Board Table Style */
+        .contract-board {
+            width: 100%; border-collapse: collapse; background: var(--card-bg);
+            border-radius: 20px; overflow: hidden; border: 1px solid var(--card-border);
+        }
+        .contract-board th, .contract-board td { padding: 20px; text-align: left; border-bottom: 1px solid var(--card-border); }
+        .contract-board th { background: rgba(255,255,255,0.05); color: var(--accent); font-size: 0.9rem; text-transform: uppercase; }
+        .contract-board tr:hover { background: rgba(59, 130, 246, 0.1); cursor: pointer; }
+        
+        .status-tag { padding: 4px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; }
+        .status-active { background: #10b981; color: #fff; }
+
+        /* Detail Area (Hidden by default) */
+        .detail-row { display: none; background: rgba(0,0,0,0.3); }
+        .detail-row.active { display: table-row; }
+        .detail-content { padding: 30px; color: #ffffff; line-height: 1.8; white-space: pre-wrap; }
+
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #1e293b; padding: 40px; border-radius: 25px; width: 95%; max-width: 800px;
+            border: 1px solid var(--primary); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border);
+            background: #0f172a; color: #fff; outline: none;
+        }
+        .form-group textarea { height: 120px; }
+
+        .btn-group { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 30px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .btn-cancel { background: transparent; color: var(--text-dim); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+
+        footer { padding: 60px 5%; text-align: center; border-top: 1px solid var(--card-border); margin-top: 100px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="ci.png" alt="PARATA AIR CI">
+            <div class="logo-text"><b>FLIGHT OPERATION<br>ENGINEERING TEAM</b></div>
+        </a>
+    </nav>
+
+    <div class="header-area">
+        <h1>CONTRACT MANAGEMENT</h1>
+        <p>소프트웨어 및 기술 파트너십 계약 내역 관리</p>
+    </div>
+
+    <div class="container">
+        <div class="action-bar">
+            <h2 style="font-family: Montserrat;">Contract List</h2>
+            <button class="btn-add" onclick="openModal()">+ 새 계약 등록</button>
+        </div>
+
+        <table class="contract-board">
+            <thead>
+                <tr>
+                    <th>날짜</th>
+                    <th>계약서명 / 업체</th>
+                    <th>담당자</th>
+                    <th>금액 (USD/KRW)</th>
+                    <th>갱신예정일</th>
+                    <th>상태</th>
+                </tr>
+            </thead>
+            <tbody id="contractList">
+                </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="contractModal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 25px;">신규 계약 등록</h2>
+            <input type="hidden" id="editIndex">
+            
+            <div class="modal-grid">
+                <div class="form-group">
+                    <label>계약 체결일</label>
+                    <input type="date" id="cDate">
+                </div>
+                <div class="form-group">
+                    <label>계약 상태</label>
+                    <select id="cStatus">
+                        <option value="정상">정상 (Active)</option>
+                        <option value="만료예정">만료예정</option>
+                        <option value="종료">종료</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>계약서명 / 파트너사</label>
+                    <input type="text" id="cTitle" placeholder="예: NAVBLUE PEP & Flysmart 서비스 계약 / NAVBLUE">
+                </div>
+                <div class="form-group">
+                    <label>내부 담당자</label>
+                    <input type="text" id="cManager" placeholder="예: 이종헌">
+                </div>
+                <div class="form-group">
+                    <label>계약 금액</label>
+                    <input type="text" id="cAmount" placeholder="예: $12,500 / Month">
+                </div>
+                <div class="form-group">
+                    <label>계약 종료/갱신일</label>
+                    <input type="date" id="cRenewal">
+                </div>
+                <div class="form-group">
+                    <label>결제 조건</label>
+                    <input type="text" id="cPayment" placeholder="예: Net 30 days / Wire Transfer">
+                </div>
+                <div class="form-group full-width">
+                    <label>계약 상세 내용</label>
+                    <textarea id="cDetails" placeholder="주요 계약 범위, 라이선스 수량 등 상세 내용을 입력하세요"></textarea>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="closeModal()">취소</button>
+                <button class="btn-save" onclick="saveContract()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <b style="font-family: Montserrat; font-size: 1.2rem; color: var(--primary);">PARATA AIR</b>
+        <p style="margin-top: 10px; color: var(--text-dim); font-size: 0.8rem;">© 2026 Parata Air Operations Engineering. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // 초기 데이터 세팅
+        let contracts = JSON.parse(localStorage.getItem('parataContracts')) || [
+            { 
+                date: '2026-01-01', 
+                title: 'NAVBLUE EFB & Performance 솔루션 계약', 
+                manager: '이종헌', 
+                amount: '$8,200 / Month', 
+                renewal: '2026-12-31', 
+                status: '정상', 
+                payment: 'Quarterly Billing',
+                details: '- A321NEO 5대분 Flysmart+ 라이선스 포함\n- PEP 및 APMS 모듈 사용 권한\n- 24/7 기술 지원 서비스 포함' 
+            }
+        ];
+
+        function renderContracts() {
+            const list = document.getElementById('contractList');
+            list.innerHTML = '';
+            
+            contracts.forEach((c, index) => {
+                list.innerHTML += `
+                    <tr onclick="toggleDetail(${index})">
+                        <td class="date">${c.date}</td>
+                        <td><strong style="color:#fff">${c.title}</strong></td>
+                        <td>${c.manager}</td>
+                        <td style="color:var(--accent); font-weight:700;">${c.amount}</td>
+                        <td>${c.renewal}</td>
+                        <td><span class="status-tag status-active">${c.status}</span></td>
+                    </tr>
+                    <tr class="detail-row" id="detail-${index}">
+                        <td colspan="6">
+                            <div class="detail-content">
+                                <div style="margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+                                    <strong>결제 조건:</strong> ${c.payment}
+                                </div>
+                                <strong>상세 범위 및 특이사항:</strong><br>
+                                ${c.details}
+                                <div class="btn-group" style="margin-top:20px;">
+                                    <button class="btn-cancel" onclick="editContract(${index}, event)" style="font-size:0.8rem;">수정</button>
+                                    <button class="btn-cancel" onclick="deleteContract(${index}, event)" style="font-size:0.8rem; color:var(--danger); border-color:var(--danger);">삭제</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function toggleDetail(index) {
+            document.getElementById(`detail-${index}`).classList.toggle('active');
+        }
+
+        function openModal() {
+            document.getElementById('editIndex').value = '';
+            document.getElementById('modalTitle').innerText = '신규 계약 등록';
+            document.getElementById('cDate').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('cTitle').value = '';
+            document.getElementById('cManager').value = '';
+            document.getElementById('cAmount').value = '';
+            document.getElementById('cRenewal').value = '';
+            document.getElementById('cPayment').value = '';
+            document.getElementById('cDetails').value = '';
+            document.getElementById('contractModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('contractModal').style.display = 'none';
+        }
+
+        function saveContract() {
+            const index = document.getElementById('editIndex').value;
+            const newData = {
+                date: document.getElementById('cDate').value,
+                title: document.getElementById('cTitle').value,
+                manager: document.getElementById('cManager').value,
+                amount: document.getElementById('cAmount').value,
+                renewal: document.getElementById('cRenewal').value,
+                status: document.getElementById('cStatus').value,
+                payment: document.getElementById('cPayment').value,
+                details: document.getElementById('cDetails').value
+            };
+
+            if(!newData.title || !newData.manager) {
+                alert('계약서명과 담당자를 입력해주세요.');
+                return;
+            }
+
+            if(index === '') {
+                contracts.unshift(newData);
+            } else {
+                contracts[index] = newData;
+            }
+
+            localStorage.setItem('parataContracts', JSON.stringify(contracts));
+            renderContracts();
+            closeModal();
+        }
+
+        function editContract(index, event) {
+            event.stopPropagation();
+            const c = contracts[index];
+            document.getElementById('editIndex').value = index;
+            document.getElementById('modalTitle').innerText = '계약 내역 수정';
+            document.getElementById('cDate').value = c.date;
+            document.getElementById('cTitle').value = c.title;
+            document.getElementById('cManager').value = c.manager;
+            document.getElementById('cAmount').value = c.amount;
+            document.getElementById('cRenewal').value = c.renewal;
+            document.getElementById('cStatus').value = c.status;
+            document.getElementById('cPayment').value = c.payment;
+            document.getElementById('cDetails').value = c.details;
+            document.getElementById('contractModal').style.display = 'flex';
+        }
+
+        function deleteContract(index, event) {
+            event.stopPropagation();
+            if(confirm('해당 계약 내역을 삭제하시겠습니까?')) {
+                contracts.splice(index, 1);
+                localStorage.setItem('parataContracts', JSON.stringify(contracts));
+                renderContracts();
+            }
+        }
+
+        renderContracts();
+    </script>
+</body>
+</html>
