@@ -83,7 +83,6 @@
         .section-header h2 { font-family: 'Montserrat'; font-size: 2.5rem; font-weight: 900; margin-bottom: 12px; color: #fff; }
         .section-header p { color: var(--accent); font-weight: 700; font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* 카드 및 그리드 정렬 */
         .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: stretch; }
         .bento-item { background: var(--card-bg); border: 1px solid var(--card-border); padding: 40px; border-radius: 28px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; height: 100%; }
         .bento-item:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.2); transform: translateY(-10px) scale(1.02); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
@@ -102,7 +101,6 @@
         .task-list li { color: #ffffff; font-size: 0.85rem; margin-bottom: 10px; position: relative; padding-left: 20px; line-height: 1.6; }
         .task-list li::before { content: '•'; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
 
-        /* --- 회의록 섹션 리스트 스타일 --- */
         .recent-meetings-container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
         .meeting-link-item {
             background: var(--card-bg); border: 1px solid var(--card-border);
@@ -145,7 +143,8 @@
         <li><a href="#team">팀원 소개</a></li>
         <li><a href="#accounting">회계관리</a></li>
         <li><a href="#performance">PERFORMANCE</a></li>
-        <li><a href="#minutes">회의록</a></li> <li><a href="#board">게시판</a></li>
+        <li><a href="#minutes">회의록</a></li> 
+        <li><a href="#board">게시판</a></li>
     </ul>
 </nav>
 
@@ -158,7 +157,7 @@
         </div>
     </section>
 
-    <section id="major-duties" style="padding: 60px 5% 100px; max-width: 1550px; margin: 0 auto;">
+    <section id="major-duties" class="section-padding">
         <div class="section-header"><h2>업무소개</h2><p>WORK INTRODUCTION</p></div>
         <div class="bento-grid">
             <div class="bento-item"><h3>⚖️ 운항 기준 / OPSPEC</h3><ul><li>운영기준(Opspec) 제·개정 관리</li><li>항공기 매뉴얼 Customization</li><li>MEL/CDL 변경내용 검토</li></ul></div>
@@ -231,16 +230,7 @@
 <section id="minutes" class="section-padding">
     <div class="section-header"><h2>회의록</h2><p>RECENT MEETING MINUTES</p></div>
     <div class="recent-meetings-container" id="recentMeetingsList">
-        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
-            <div class="m-info">2026.01.10</div>
-            <div class="m-title">주간 운항기술 정기 회의</div>
-            <div class="m-info">이한영 외 5명</div>
-        </div>
-        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
-            <div class="m-info">2026.01.03</div>
-            <div class="m-title">신규 취항 노선 성능 분석 검토</div>
-            <div class="m-info">박남준, 박정원</div>
-        </div>
+        <p style="text-align:center; color:var(--text-dim);">회의록 데이터를 불러오는 중입니다...</p>
     </div>
     <div style="text-align: center; margin-top: 40px;">
         <a onclick="handleProtectedLink('meeting.html')" style="display:inline-block; padding:15px 40px; background:var(--primary); color:#fff; text-decoration:none; border-radius:50px; font-weight:700; cursor:pointer; transition:0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">회의록 시스템 접속</a>
@@ -308,27 +298,49 @@
             if (target) { window.scrollTo({ top: target.offsetTop, behavior: 'smooth' }); }
         });
     });
+</script>
 
-    function updateRecentMeetings() {
-        const stored = localStorage.getItem('parataMeetings');
-        if (stored) {
-            const meetings = JSON.parse(stored);
-            const listArea = document.getElementById('recentMeetingsList');
-            if (meetings && meetings.length > 0) {
-                listArea.innerHTML = '';
-                meetings.slice(0, 2).forEach(m => {
-                    listArea.innerHTML += `
-                        <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
-                            <div class="m-info">${m.date}</div>
-                            <div class="m-title">${m.title}</div>
-                            <div class="m-info">${m.attendees}</div>
-                        </div>
-                    `;
-                });
-            }
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+    // 사용자 제공 Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
+        authDomain: "parataoe-769bb.firebaseapp.com",
+        projectId: "parataoe-769bb",
+        databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com/",
+        storageBucket: "parataoe-769bb.firebasestorage.app",
+        messagingSenderId: "964545748384",
+        appId: "1:964545748384:web:f882221099022e4271d8c5",
+        measurementId: "G-5LJ4QR4XED"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const meetingsRef = ref(db, 'meetings');
+
+    // 최신 회의록 2개만 실시간으로 가져와서 메인 페이지에 노출
+    onValue(meetingsRef, (snapshot) => {
+        const data = snapshot.val();
+        const listArea = document.getElementById('recentMeetingsList');
+        if (data) {
+            listArea.innerHTML = '';
+            // 키 값을 기준으로 역순(최신순) 정렬 후 상위 2개 추출
+            const keys = Object.keys(data).reverse().slice(0, 2);
+            keys.forEach(key => {
+                const m = data[key];
+                listArea.innerHTML += `
+                    <div class="meeting-link-item" onclick="handleProtectedLink('meeting.html')">
+                        <div class="m-info">${m.date}</div>
+                        <div class="m-title">${m.title}</div>
+                        <div class="m-info">${m.attendees}</div>
+                    </div>`;
+            });
+        } else {
+            listArea.innerHTML = '<p style="text-align:center; color:var(--text-dim);">등록된 최근 회의록이 없습니다.</p>';
         }
-    }
-    window.onload = updateRecentMeetings;
+    });
 </script>
 
 </body>
