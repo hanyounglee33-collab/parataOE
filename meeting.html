@@ -3,143 +3,386 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회의록 관리 | PARATA AIR 운항기술팀</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>Parata Air Operation Tech Team Accounting System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0f172a; --bg-deep: #020617; --primary: #3b82f6; --accent: #00f2ff;
-            --card-border: rgba(255, 255, 255, 0.08); --text-dim: #94a3b8;
-            /* 성격별 색상 */
-            --color-external: #10b981; /* 외부: 그린 */
-            --color-strategy: #a855f7; /* 전략: 퍼플 */
-            --color-team: #f59e0b;     /* 팀: 오렌지 */
-            --color-important: #ff4757;
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; overflow-x: hidden; color: #1e293b; }
+        .main-content { padding: 2.5rem; min-height: 100vh; max-width: 1400px; margin: 0 auto; }
+        .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; }
+        
+        .view-content { display: none; }
+        .view-active { display: block; animation: fadeIn 0.3s ease-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-dark); color: #f8fafc; line-height: 1.6; overflow-x: hidden; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .main-content { padding: 0; }
+            .view-content { display: block !important; }
+            #report-visual-mode, #report-table-mode { display: block !important; }
+        }
+
+        #editModal { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
         
-        /* Nav & Header */
-        nav { position: fixed; top: 0; width: 100%; height: 70px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; }
-        .logo { display: flex; align-items: center; gap: 15px; text-decoration: none; color: #0f172a; }
-        .logo img { height: 30px; }
-        .header-area { padding: 120px 5% 40px; background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 1)), url('main.png'); text-align: center; }
+        .nav-btn { position: relative; transition: all 0.3s; }
+        .nav-btn.active { color: #2563eb; }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #2563eb;
+            border-radius: 99px;
+        }
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .page-link { transition: all 0.2s; cursor: pointer; }
+        .page-link.active { background-color: #2563eb; color: white; border-color: #2563eb; }
 
-        /* Search & Action Bar */
-        .top-controls { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
-        .search-box { flex-grow: 1; position: relative; }
-        .search-box input { width: 100%; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); background: rgba(255,255,255,0.05); color: #fff; outline: none; transition: 0.3s; }
-        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-        .btn-write { background: var(--primary); color: #fff; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; white-space: nowrap; }
-
-        /* List Styling */
-        .meeting-list { display: flex; flex-direction: column; gap: 12px; min-height: 500px; }
-        .meeting-item { background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); border-radius: 15px; overflow: hidden; transition: 0.3s; position: relative; }
-        .meeting-item.is-important { border: 1.5px solid var(--color-important); box-shadow: 0 0 15px rgba(255, 71, 87, 0.1); }
-        .meeting-item:hover { transform: translateY(-3px); background: rgba(30, 41, 59, 0.6); }
-
-        .meeting-summary { cursor: pointer; display: flex; align-items: stretch; }
-        
-        /* Category Label Side */
-        .category-bar { width: 6px; }
-        .cat-external { background: var(--color-external); }
-        .cat-strategy { background: var(--color-strategy); }
-        .cat-team { background: var(--color-team); }
-
-        .date-box { background: rgba(255,255,255,0.03); min-width: 100px; padding: 15px; text-align: center; border-right: 1px solid var(--card-border); }
-        .date-box .year { font-size: 0.7rem; color: var(--text-dim); display: block; }
-        .date-box .day { font-size: 1.4rem; font-weight: 800; color: var(--accent); display: block; }
-
-        .info-box { flex-grow: 1; padding: 15px 25px; }
-        .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-        .title { font-size: 1.1rem; font-weight: 700; }
-        .badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; font-weight: 800; }
-        .important-tag { color: var(--color-important); font-size: 1.2rem; }
-
-        .attendees { font-size: 0.85rem; color: var(--text-dim); }
-
-        /* Pagination */
-        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 40px; padding-bottom: 50px; }
-        .page-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .page-btn:hover:not(:disabled) { background: var(--primary); border-color: var(--primary); }
-        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .page-info { align-self: center; font-size: 0.9rem; color: var(--text-dim); margin: 0 10px; }
-
-        /* Modal Customization */
-        .type-selector { display: flex; gap: 10px; margin-top: 5px; }
-        .type-opt { flex: 1; text-align: center; padding: 8px; border-radius: 8px; border: 1px solid var(--card-border); cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
-        .type-opt input { display: none; }
-        .type-opt:has(input:checked) { border-color: var(--accent); background: rgba(0, 242, 255, 0.1); color: var(--accent); }
-
-        .meeting-details { display: none; padding: 25px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--card-border); }
-        .meeting-details.active { display: block; animation: fadeIn 0.3s; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Existing Modal & Form Styles (Refined) */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; justify-content:center; align-items:center; backdrop-filter:blur(5px); }
-        .modal-content { background:#1e293b; padding:35px; border-radius:20px; width:90%; max-width:550px; border:1px solid var(--card-border); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 5px; }
-        input, textarea, select { width:100%; padding:10px; border-radius:8px; border:1px solid var(--card-border); background:#0f172a; color:#fff; outline:none; }
+        .toggle-btn { transition: all 0.2s; }
+        .toggle-btn.active { background-color: #0f172a; color: white; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html" class="logo">
-            <img src="ci.png" alt="PARATA AIR">
-            <div style="border-left:1px solid #ddd; padding-left:10px; font-size:0.75rem; font-weight:900;">FLIGHT OPERATION<br>ENGINEERING</div>
-        </a>
-    </nav>
 
-    <div class="header-area">
-        <h1 style="font-family:'Montserrat'; letter-spacing:-1px;">MEETING LOGS</h1>
-        <p style="color:var(--accent); font-size:0.8rem; letter-spacing:3px; font-weight:700;">운항기술팀회의록</p>
-    </div>
-
-    <div class="container">
-        <div class="top-controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="회의 제목 또는 참석자 검색..." oninput="handleSearch()">
-            </div>
-            <button class="btn-write" onclick="openModal()">+ 새 회의록 작성</button>
-        </div>
-
-        <div id="meetingList" class="meeting-list">
-            </div>
-
-        <div class="pagination" id="pagination">
-            </div>
-    </div>
-
-    <div class="modal" id="meetingModal">
-        <div class="modal-content">
-            <h2 id="modalTitle" style="margin-bottom:20px; font-family:'Montserrat';">EDIT MEETING</h2>
-            <input type="hidden" id="editKey">
-            <div class="form-group">
-                <label>중요도 및 성격</label>
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <label style="display:flex; align-items:center; gap:5px; color:#fff; cursor:pointer;">
-                        <input type="checkbox" id="mImportant" style="width:18px; height:18px;"> 중요 회의
-                    </label>
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="mb-10 no-print">
+            <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-200 pb-6 mb-6 gap-6">
+                <div class="flex items-center gap-4">
+                    <div class="bg-slate-900 p-2 rounded-lg text-white font-black text-xs tracking-tighter uppercase">Parata</div>
+                    <div>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">운항 기술팀 회계관리 시스템</h1>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Operation Tech Team Accounting</p>
+                    </div>
                 </div>
-                <div class="type-selector">
-                    <label class="type-opt"><input type="radio" name="mType" value="team" checked> 팀회의</label>
-                    <label class="type-opt"><input type="radio" name="mType" value="strategy"> 전략회의</label>
-                    <label class="type-opt"><input type="radio" name="mType" value="external"> 외부회의</label>
+
+                <nav class="flex items-center gap-8 bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100">
+                    <button onclick="window.switchView('view-dashboard')" id="nav-dashboard" class="nav-btn text-sm font-bold transition-all text-slate-500 hover:text-blue-600">인보이스 관리</button>
+                    <button onclick="window.switchView('view-report')" id="nav-report" class="nav-btn text-sm font-bold transition-all text-slate-500 hover:text-blue-600">분석 리포트</button>
+                    <button onclick="window.switchView('view-settings')" id="nav-settings" class="nav-btn text-sm font-bold transition-all text-slate-500 hover:text-blue-600">설정 & 백업</button>
+                </nav>
+
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">USD/KRW</span>
+                        <input type="number" id="rateUsd" value="1350" oninput="window.handleRateChange()" class="text-xs font-bold w-16 text-center border-b border-slate-100 focus:border-blue-500 outline-none">
+                    </div>
+                    <div class="flex flex-col items-center border-l pl-4 border-slate-100">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">EUR/KRW</span>
+                        <input type="number" id="rateEur" value="1450" oninput="window.handleRateChange()" class="text-xs font-bold w-16 text-center border-b border-slate-100 focus:border-blue-500 outline-none">
+                    </div>
                 </div>
             </div>
-            <div class="form-group"><label>날짜</label><input type="date" id="mDate"></div>
-            <div class="form-group"><label>제목</label><input type="text" id="mTitle"></div>
-            <div class="form-group"><label>참석자</label><input type="text" id="mAttendees"></div>
-            <div class="form-group"><label>내용</label><textarea id="mContent" style="height:120px;"></textarea></div>
-            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                <button class="page-btn" onclick="closeModal()">취소</button>
-                <button class="btn-write" onclick="saveMeeting()">저장하기</button>
+        </header>
+
+        <!-- View: Dashboard -->
+        <div id="view-dashboard" class="view-content view-active space-y-8">
+            
+            <!-- Dashboard Filters -->
+            <div class="flex items-center justify-between no-print">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 w-1.5 h-6 rounded-full"></div>
+                    <h2 class="text-lg font-black text-slate-800">통계 요약 & 필터</h2>
+                </div>
+                <div class="flex gap-2">
+                    <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Year</span>
+                        <select id="filterYear" onchange="window.handleListFilter()" class="text-xs font-black outline-none bg-transparent min-w-[80px]">
+                            <option value="all">모든 년도</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Vendor</span>
+                        <select id="filterVendor" onchange="window.handleListFilter()" class="text-xs font-black outline-none bg-transparent min-w-[100px]">
+                            <option value="all">모든 업체</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="card p-6 border-t-4 border-blue-600 transition-all hover:shadow-md">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase">필터 합계 (KRW)</p>
+                    <h3 id="dashTotal" class="text-2xl font-black mt-1">0 원</h3>
+                </div>
+                <div class="card p-6 border-t-4 border-emerald-500 transition-all hover:shadow-md">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase">지급 완료 (KRW)</p>
+                    <h3 id="dashPaid" class="text-2xl font-black text-emerald-600 mt-1">0 원</h3>
+                </div>
+                <div class="card p-6 border-t-4 border-rose-500 transition-all hover:shadow-md">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase">미지급 잔액 (KRW)</p>
+                    <h3 id="dashUnpaid" class="text-2xl font-black text-rose-600 mt-1">0 원</h3>
+                </div>
+                <div class="card p-6 border-t-4 border-amber-500 transition-all hover:shadow-md">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase">합계 (USD 환산)</p>
+                    <h3 id="dashTotalUsd" class="text-2xl font-black text-amber-600 mt-1">$ 0.00</h3>
+                </div>
+            </div>
+
+            <section class="no-print">
+                <div class="card p-8 shadow-lg">
+                    <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                        <div class="w-1.5 h-5 bg-blue-600 rounded-full"></div>
+                        인보이스 데이터 입력 (Entry)
+                    </h2>
+                    <form id="accountingForm" class="space-y-6">
+                        <div class="input-grid">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">공급업체 (Vendor)</label>
+                                <select id="vendorSelect" required onchange="window.toggleDirectInput('vendorSelect', 'vendorDirect')" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                                    <option value="">업체 선택</option>
+                                    <option value="Honeywell">Honeywell</option>
+                                    <option value="Navblue">Navblue</option>
+                                    <option value="Jeppesen">Jeppesen</option>
+                                    <option value="Airbus">Airbus</option>
+                                    <option value="direct">직접 입력</option>
+                                </select>
+                                <input type="text" id="vendorDirect" placeholder="업체명 입력" class="hidden mt-2 w-full p-3 bg-white border border-blue-300 rounded-xl text-sm outline-none shadow-sm">
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2 flex gap-3">
+                                <div class="flex-1">
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-2">금액 (Amount)</label>
+                                    <input type="number" id="inputAmount" step="any" placeholder="0" required oninput="window.calculatePreview()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                                </div>
+                                <div class="w-24">
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-2">통화</label>
+                                    <select id="currency" onchange="window.calculatePreview()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500">
+                                        <option value="KRW">KRW</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-[11px] font-bold text-blue-600 mb-2 uppercase">USD 환산 (미리보기)</label>
+                                    <input type="text" id="previewUsd" placeholder="$ 0.00" readonly class="w-full p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700 font-bold outline-none cursor-not-allowed">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">Invoice No.</label>
+                                <input type="text" id="invoiceNo" placeholder="INV-000" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">기안자 (Drafter)</label>
+                                <select id="drafterSelect" required onchange="window.toggleDirectInput('drafterSelect', 'drafterDirect')" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                                    <option value="">기안자 선택</option>
+                                    <option value="이율비">이율비</option>
+                                    <option value="박정원">박정원</option>
+                                    <option value="도재윤">도재윤</option>
+                                    <option value="박남준">박남준</option>
+                                    <option value="이종헌">이종헌</option>
+                                    <option value="direct">직접 입력</option>
+                                </select>
+                                <input type="text" id="drafterDirect" placeholder="성함 입력" class="hidden mt-2 w-full p-3 bg-white border border-blue-300 rounded-xl text-sm outline-none shadow-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">인보이스 일자</label>
+                                <input type="date" id="invoiceDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">지급 상태</label>
+                                <select id="isPaid" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                                    <option value="false">미지급</option>
+                                    <option value="true">지급완료</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-end">
+                            <div class="flex-1">
+                                <label class="block text-[11px] font-bold text-slate-400 mb-2">비고 (Remarks)</label>
+                                <input type="text" id="remarks" placeholder="특이사항 입력" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 transition-all">
+                            </div>
+                            <button type="submit" class="bg-slate-900 text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-600 transition-all shadow-lg active:scale-95 h-[46px]">데이터 저장</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <div class="card overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center bg-white gap-4">
+                    <h2 class="text-lg font-bold text-slate-800">지출 내역 리스트 (Audit List)</h2>
+                    <div class="flex flex-wrap items-center gap-3 no-print">
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="exportStart" class="p-2 border border-slate-200 rounded-lg text-xs outline-none">
+                            <span class="text-slate-400">~</span>
+                            <input type="date" id="exportEnd" class="p-2 border border-slate-200 rounded-lg text-xs outline-none">
+                        </div>
+                        <button onclick="window.exportToExcel()" class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            기간 선택 엑셀 내보내기
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-400 border-b border-slate-200">
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">일자</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">Inv No.</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">업체명</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest text-center">기안자</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">금액 (Original)</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">KRW 환산</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">USD 환산</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest text-center">상태</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest">비고</th>
+                                <th class="p-4 font-bold uppercase text-[10px] tracking-widest text-center no-print">액션</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                    </table>
+                    <div id="noDataMessage" class="p-20 text-center text-slate-400 italic font-medium hidden">기록이 없습니다.</div>
+                </div>
+                <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-center items-center gap-2 no-print" id="paginationControls"></div>
             </div>
         </div>
-    </div>
+
+        <!-- View: Report -->
+        <div id="view-report" class="view-content space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-end no-print gap-4">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900">회계 분석 리포트</h2>
+                    <p class="text-slate-500 font-medium mt-1">지출 내역 시각화 및 데이터 분석</p>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-200/50 p-1.5 rounded-2xl border border-slate-300 shadow-inner">
+                    <button onclick="window.switchReportMode('visual')" id="report-btn-visual" class="toggle-btn active px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all">차트 분석</button>
+                    <button onclick="window.switchReportMode('table')" id="report-btn-table" class="toggle-btn px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">데이터 상세</button>
+                </div>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg">PDF 출력 / 저장</button>
+            </div>
+
+            <!-- Report Filter -->
+            <div class="card p-6 no-print bg-slate-50 border-blue-100 border-2 shadow-sm">
+                <div class="flex flex-wrap items-end gap-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">분석 기간 설정</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="reportStart" onchange="window.handleReportFilterChange()" class="p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            <span class="text-slate-300">~</span>
+                            <input type="date" id="reportEnd" onchange="window.handleReportFilterChange()" class="p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">공급업체 필터</label>
+                        <select id="reportVendorFilter" onchange="window.handleReportFilterChange()" class="p-2.5 border border-slate-200 rounded-xl text-sm outline-none min-w-[200px] font-semibold focus:ring-2 focus:ring-blue-500 transition-all">
+                            <option value="all">전체 업체 분석</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <button onclick="window.resetReportFilters()" class="text-xs text-slate-400 hover:text-blue-500 font-bold underline transition underline-offset-4">조건 초기화</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="report-visual-mode" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-bold text-slate-400 mb-8 uppercase tracking-widest">업체별 실 지출 금액 (KRW)</h3>
+                    <div class="h-[320px] w-full"><canvas id="vendorBarChart"></canvas></div>
+                </div>
+                <div class="card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-bold text-slate-400 mb-8 uppercase tracking-widest">연도별 지출 합계 (KRW)</h3>
+                    <div class="h-[320px] w-full"><canvas id="yearlyChart"></canvas></div>
+                </div>
+                <div class="card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-bold text-slate-400 mb-8 uppercase tracking-widest">월별 지출 추이</h3>
+                    <div class="h-[320px] w-full"><canvas id="monthlyChart"></canvas></div>
+                </div>
+                <div class="card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-bold text-slate-400 mb-8 uppercase tracking-widest">업체별 지출 비중</h3>
+                    <div class="h-[320px] w-full"><canvas id="vendorChart"></canvas></div>
+                </div>
+                <div class="card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-bold text-slate-400 mb-8 uppercase tracking-widest">지급 상태 현황</h3>
+                    <div class="h-[320px] w-full"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="bg-slate-900 text-white p-10 rounded-3xl shadow-2xl flex flex-col justify-center border-t-4 border-blue-500">
+                    <h3 class="text-2xl font-black mb-6 text-blue-400">📊 필터 분석 요약</h3>
+                    <ul id="insights-list" class="space-y-5 text-slate-300 font-medium"></ul>
+                </div>
+            </div>
+
+            <div id="report-table-mode" class="hidden">
+                <div class="card overflow-hidden shadow-lg border-blue-100">
+                    <div class="p-5 border-b bg-slate-900 text-white flex justify-between items-center">
+                        <span class="text-sm font-bold">데이터 상세 브라우징 (Excel Style)</span>
+                        <span id="report-table-count" class="text-xs bg-blue-600 px-2 py-1 rounded text-white font-bold">0 Items</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse font-medium">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-500 border-b">
+                                    <th class="p-4 font-black">일자</th>
+                                    <th class="p-4 font-black">Invoice No.</th>
+                                    <th class="p-4 font-black">업체명</th>
+                                    <th class="p-4 font-black">기안자</th>
+                                    <th class="p-4 font-black">원본금액</th>
+                                    <th class="p-4 font-black text-blue-600">KRW 환산</th>
+                                    <th class="p-4 font-black text-amber-600">USD 환산</th>
+                                    <th class="p-4 font-black text-center">지급상태</th>
+                                    <th class="p-4 font-black">비고</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportDataOnlyBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-center items-center gap-2 no-print" id="reportPaginationControls"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Settings -->
+        <div id="view-settings" class="view-content space-y-8">
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight">시스템 설정 및 클라우드 관리</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card p-8">
+                    <h3 class="text-lg font-bold mb-4">데이터 로컬 백업</h3>
+                    <div class="space-y-3">
+                        <button onclick="window.downloadBackup()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition shadow-md">백업 파일(.json) 생성</button>
+                    </div>
+                </div>
+                <div class="card p-8 bg-slate-50 border-none font-mono text-[11px] leading-relaxed">
+                    <h3 class="text-lg font-bold mb-4 text-slate-700">Storage Information</h3>
+                    <p class="text-slate-500">Database Engine: <span class="text-blue-600 font-bold">Firebase Realtime DB</span></p>
+                    <p class="text-slate-500">Last Sync: <span id="sync-time" class="font-bold">Now</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+            <div class="card w-full max-w-2xl p-8 shadow-2xl animate-fadeIn">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-black">항목 수정 (Modify)</h2>
+                    <button onclick="window.closeEditModal()" class="text-slate-400 hover:text-slate-900"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+                <form id="editForm" class="space-y-4">
+                    <input type="hidden" id="editId">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">일자</label><input type="date" id="editDate" required class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Invoice No.</label><input type="text" id="editInvNo" required class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">금액</label><input type="number" id="editAmount" step="any" required class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"></div>
+                        <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">통화</label><select id="editCurrency" class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"><option value="KRW">KRW</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div>
+                    </div>
+                    <div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">비고</label><input type="text" id="editRemarks" class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none"></div>
+                    <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black hover:bg-blue-600 transition shadow-lg mt-4">저장</button>
+                </form>
+            </div>
+        </div>
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -158,138 +401,250 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const meetingsRef = ref(db, 'meetings');
+        const invoicesRef = ref(db, 'invoices');
 
-        let allData = [];
-        let filteredData = [];
+        let invoices = [];
+        let charts = { vendor: null, monthly: null, status: null, yearly: null, vendorBar: null };
+        
+        // Dashboard Pagination
         let currentPage = 1;
-        const itemsPerPage = 7;
+        const itemsPerPage = 10;
 
-        // 데이터 실시간 감시
-        onValue(meetingsRef, (snapshot) => {
+        // Report Pagination
+        let currentReportPage = 1;
+        const reportItemsPerPage = 15;
+        let currentReportMode = 'visual';
+
+        onValue(invoicesRef, (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                allData = Object.keys(data).map(key => ({ key, ...data[key] }))
-                         .sort((a, b) => new Date(b.date) - new Date(a.date));
-            } else {
-                allData = [];
+            invoices = data ? Object.entries(data).map(([id, val]) => ({ id, ...val })) : [];
+            updateFilterOptions();
+            renderTable(); 
+            if (document.getElementById('view-report').classList.contains('view-active')) {
+                updateVendorFilterList();
+                updateCharts();
             }
-            handleSearch(); // 초기 렌더링 포함
+            document.getElementById('sync-time').innerText = new Date().toLocaleTimeString();
         });
 
-        // 검색 처리
-        window.handleSearch = () => {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            filteredData = allData.filter(m => 
-                m.title.toLowerCase().includes(query) || 
-                (m.attendees && m.attendees.toLowerCase().includes(query))
-            );
-            currentPage = 1;
-            renderList();
+        window.switchView = (viewId) => {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('view-active'));
+            document.getElementById(viewId).classList.add('view-active');
+            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-blue-600', 'active'); btn.classList.add('text-slate-500'); });
+            const navId = 'nav-' + viewId.split('-')[1];
+            const activeBtn = document.getElementById(navId);
+            activeBtn.classList.remove('text-slate-500');
+            activeBtn.classList.add('text-blue-600', 'active');
+            if (viewId === 'view-report') { 
+                updateVendorFilterList(); 
+                currentReportPage = 1;
+                updateCharts(); 
+            }
         };
 
-        // 리스트 렌더링
-        function renderList() {
-            const list = document.getElementById('meetingList');
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+        window.switchReportMode = (mode) => {
+            currentReportMode = mode;
+            const visualSection = document.getElementById('report-visual-mode');
+            const tableSection = document.getElementById('report-table-mode');
+            const btnVisual = document.getElementById('report-btn-visual');
+            const btnTable = document.getElementById('report-btn-table');
+            if (mode === 'visual') { visualSection.classList.remove('hidden'); tableSection.classList.add('hidden'); btnVisual.classList.add('active'); btnTable.classList.remove('active'); btnTable.classList.add('text-slate-500'); }
+            else { 
+                visualSection.classList.add('hidden'); tableSection.classList.remove('hidden'); btnVisual.classList.remove('active'); btnVisual.classList.add('text-slate-500'); btnTable.classList.add('active'); 
+                currentReportPage = 1;
+            }
+            updateCharts();
+        };
 
-            list.innerHTML = paginatedData.length ? '' : '<p style="text-align:center; padding:50px; color:var(--text-dim);">일치하는 회의록이 없습니다.</p>';
+        window.toggleDirectInput = (selectId, inputId) => {
+            const select = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            if (select.value === 'direct') { input.classList.remove('hidden'); input.required = true; }
+            else { input.classList.add('hidden'); input.required = false; }
+        };
 
-            paginatedData.forEach(m => {
-                const dateObj = new Date(m.date);
-                const typeMap = { team: '팀회의', strategy: '전략회의', external: '외부회의' };
-                
-                list.innerHTML += `
-                    <div class="meeting-item ${m.important ? 'is-important' : ''}">
-                        <div class="meeting-summary" onclick="toggleDetails('${m.key}')">
-                            <div class="category-bar cat-${m.type || 'team'}"></div>
-                            <div class="date-box">
-                                <span class="year">${dateObj.getFullYear()}</span>
-                                <span class="day">${String(dateObj.getDate()).padStart(2,'0')}</span>
-                            </div>
-                            <div class="info-box">
-                                <div class="title-row">
-                                    <span class="badge cat-${m.type || 'team'}">${typeMap[m.type || 'team']}</span>
-                                    ${m.important ? '<span class="important-tag">★</span>' : ''}
-                                    <span class="title">${m.title}</span>
-                                </div>
-                                <div class="attendees">참석자: ${m.attendees || '미지정'}</div>
-                            </div>
-                        </div>
-                        <div class="meeting-details" id="details-${m.key}">
-                            <div style="white-space:pre-wrap; margin-bottom:20px;">${m.content}</div>
-                            <div style="text-align:right;">
-                                <button class="page-btn" onclick="prepareEdit('${m.key}')">수정</button>
-                                <button class="page-btn" onclick="deleteMeeting('${m.key}')" style="color:#ff6b6b">삭제</button>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-            renderPagination();
+        window.calculatePreview = () => {
+            const amount = parseFloat(document.getElementById('inputAmount').value) || 0;
+            const currency = document.getElementById('currency').value;
+            const rateUsd = parseFloat(document.getElementById('rateUsd').value) || 1350;
+            const rateEur = parseFloat(document.getElementById('rateEur').value) || 1450;
+            const preview = document.getElementById('previewUsd');
+            let res = 0;
+            if (currency === 'KRW') res = amount / rateUsd;
+            else if (currency === 'USD') res = amount;
+            else if (currency === 'EUR') res = (amount * rateEur) / rateUsd;
+            preview.value = amount > 0 ? `$ ${res.toLocaleString(undefined, {minimumFractionDigits: 2})}` : '';
+        };
+
+        window.handleRateChange = () => { window.calculatePreview(); renderTable(); };
+
+        document.getElementById('accountingForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('inputAmount').value) || 0;
+            const curr = document.getElementById('currency').value;
+            const rUsd = parseFloat(document.getElementById('rateUsd').value) || 1350;
+            const rEur = parseFloat(document.getElementById('rateEur').value) || 1450;
+            let krw = 0, usd = 0;
+            if (curr === 'KRW') { krw = amount; usd = amount / rUsd; } else if (curr === 'USD') { krw = amount * rUsd; usd = amount; } else if (curr === 'EUR') { krw = amount * rEur; usd = krw / rUsd; }
+            const vendor = document.getElementById('vendorSelect').value === 'direct' ? document.getElementById('vendorDirect').value : document.getElementById('vendorSelect').value;
+            const drafter = document.getElementById('drafterSelect').value === 'direct' ? document.getElementById('drafterDirect').value : document.getElementById('drafterSelect').value;
+            const entry = { invoiceDate: document.getElementById('invoiceDate').value, invoiceNo: document.getElementById('invoiceNo').value, vendor: vendor || 'Unknown', originalAmount: amount, originalCurrency: curr, amountKrw: Math.round(krw), amountUsd: usd, drafter: drafter || 'Unknown', isPaid: document.getElementById('isPaid').value === 'true', remarks: document.getElementById('remarks').value };
+            push(invoicesRef, entry); e.target.reset(); document.getElementById('vendorDirect').classList.add('hidden'); document.getElementById('drafterDirect').classList.add('hidden'); document.getElementById('previewUsd').value = '';
+        });
+
+        function updateStats(filteredData) {
+            const tK = filteredData.reduce((s, i) => s + i.amountKrw, 0);
+            const pK = filteredData.filter(i => i.isPaid).reduce((s, i) => s + i.amountKrw, 0);
+            const tU = filteredData.reduce((s, i) => s + i.amountUsd, 0);
+            document.getElementById('dashTotal').innerText = tK.toLocaleString() + " 원";
+            document.getElementById('dashPaid').innerText = pK.toLocaleString() + " 원";
+            document.getElementById('dashUnpaid').innerText = (tK - pK).toLocaleString() + " 원";
+            document.getElementById('dashTotalUsd').innerText = `$ ${tU.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
         }
 
-        // 페이지네이션 버튼 렌더링
-        function renderPagination() {
-            const container = document.getElementById('pagination');
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            
+        function updateFilterOptions() {
+            const years = [...new Set(invoices.map(i => i.invoiceDate.split('-')[0]))].sort().reverse();
+            const vendors = [...new Set(invoices.map(i => i.vendor))].sort();
+            const yearSelect = document.getElementById('filterYear'); const vendorSelect = document.getElementById('filterVendor');
+            const currentYear = yearSelect.value; const currentVendor = vendorSelect.value;
+            yearSelect.innerHTML = '<option value="all">모든 년도</option>' + years.map(y => `<option value="${y}">${y}년</option>`).join('');
+            vendorSelect.innerHTML = '<option value="all">모든 업체</option>' + vendors.map(v => `<option value="${v}">${v}</option>`).join('');
+            yearSelect.value = currentYear; vendorSelect.value = currentVendor;
+        }
+
+        window.handleListFilter = () => { currentPage = 1; renderTable(); };
+        window.changePage = (p) => { currentPage = p; renderTable(); };
+
+        function renderPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const container = document.getElementById('paginationControls');
             if (totalPages <= 1) { container.innerHTML = ''; return; }
-
-            container.innerHTML = `
-                <button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">이전</button>
-                <span class="page-info">${currentPage} / ${totalPages}</span>
-                <button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">다음</button>
-            `;
+            let html = `<button onclick="window.changePage(${Math.max(1, currentPage - 1)})" class="p-2 text-slate-400 hover:text-slate-900 transition-colors ${currentPage === 1 ? 'invisible' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>`;
+            for (let i = 1; i <= totalPages; i++) { html += `<button onclick="window.changePage(${i})" class="page-link w-8 h-8 rounded-lg text-xs font-bold border border-slate-200 flex items-center justify-center ${currentPage === i ? 'active' : 'bg-white text-slate-600 hover:bg-slate-50'}">${i}</button>`; }
+            html += `<button onclick="window.changePage(${Math.min(totalPages, currentPage + 1)})" class="p-2 text-slate-400 hover:text-slate-900 transition-colors ${currentPage === totalPages ? 'invisible' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>`;
+            container.innerHTML = html;
         }
 
-        window.changePage = (page) => {
-            currentPage = page;
-            renderList();
-            window.scrollTo({ top: 400, behavior: 'smooth' });
+        function renderTable() {
+            const list = document.getElementById('reportTableBody'); const noData = document.getElementById('noDataMessage');
+            const yearVal = document.getElementById('filterYear').value; const vendorVal = document.getElementById('filterVendor').value;
+            let filtered = [...invoices];
+            if (yearVal !== 'all') filtered = filtered.filter(i => i.invoiceDate.startsWith(yearVal));
+            if (vendorVal !== 'all') filtered = filtered.filter(i => i.vendor === vendorVal);
+            updateStats(filtered);
+            if (filtered.length === 0) { list.innerHTML = ''; noData.classList.remove('hidden'); document.getElementById('paginationControls').innerHTML = ''; return; }
+            noData.classList.add('hidden');
+            const sorted = filtered.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+            const startIdx = (currentPage - 1) * itemsPerPage; const pagedItems = sorted.slice(startIdx, startIdx + itemsPerPage);
+            list.innerHTML = pagedItems.map(inv => `
+                <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                    <td class="p-4 font-bold text-slate-700">${inv.invoiceDate}</td><td class="p-4 font-mono text-[11px] text-slate-400">${inv.invoiceNo}</td><td class="p-4 font-black text-slate-900">${inv.vendor}</td><td class="p-4 text-center font-bold text-slate-600 text-xs">${inv.drafter}</td><td class="p-4 font-medium text-slate-500">${inv.originalAmount.toLocaleString()} ${inv.originalCurrency}</td><td class="p-4 font-bold text-blue-700">${inv.amountKrw.toLocaleString()}</td><td class="p-4 font-bold text-amber-600">$ ${inv.amountUsd.toLocaleString(undefined, {minimumFractionDigits: 2})}</td><td class="p-4 text-center"><button onclick="window.togglePaid('${inv.id}', ${inv.isPaid})" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${inv.isPaid ? 'bg-emerald-500 text-white shadow-md' : 'bg-rose-100 text-rose-600'}">${inv.isPaid ? '지급완료' : '미지급'}</button></td><td class="p-4 text-xs text-slate-500 max-w-[150px] break-words">${inv.remarks || '-'}</td>
+                    <td class="p-4 text-center no-print whitespace-nowrap"><button onclick="window.openEditModal('${inv.id}')" class="text-slate-300 hover:text-blue-500 p-2 mr-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button><button onclick="window.deleteItem('${inv.id}')" class="text-slate-300 hover:text-rose-500 p-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></td>
+                </tr>`).join('');
+            renderPagination(filtered.length);
+        }
+
+        window.deleteItem = (id) => { if(confirm('삭제하시겠습니까?')) remove(ref(db, `invoices/${id}`)); };
+        window.togglePaid = (id, currentStatus) => { update(ref(db, `invoices/${id}`), { isPaid: !currentStatus }); };
+        window.openEditModal = (id) => {
+            const item = invoices.find(i => i.id === id); if (!item) return;
+            document.getElementById('editId').value = id; document.getElementById('editDate').value = item.invoiceDate; document.getElementById('editInvNo').value = item.invoiceNo; document.getElementById('editAmount').value = item.originalAmount; document.getElementById('editCurrency').value = item.originalCurrency; document.getElementById('editRemarks').value = item.remarks || ''; document.getElementById('editModal').classList.remove('hidden');
+        };
+        window.closeEditModal = () => document.getElementById('editModal').classList.add('hidden');
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value; const amount = parseFloat(document.getElementById('editAmount').value); const curr = document.getElementById('editCurrency').value; const rUsd = parseFloat(document.getElementById('rateUsd').value); const rEur = parseFloat(document.getElementById('rateEur').value);
+            let krw = 0, usd = 0; if (curr === 'KRW') { krw = amount; usd = amount / rUsd; } else if (curr === 'USD') { krw = amount * rUsd; usd = amount; } else if (curr === 'EUR') { krw = amount * rEur; usd = krw / rUsd; }
+            const updates = { invoiceDate: document.getElementById('editDate').value, invoiceNo: document.getElementById('editInvNo').value, originalAmount: amount, originalCurrency: curr, amountKrw: Math.round(krw), amountUsd: usd, remarks: document.getElementById('editRemarks').value };
+            update(ref(db, `invoices/${id}`), updates).then(() => window.closeEditModal());
+        });
+
+        function updateVendorFilterList() { const filterSelect = document.getElementById('reportVendorFilter'); const currentVal = filterSelect.value; const uniqueVendors = [...new Set(invoices.map(i => i.vendor))].sort(); let options = '<option value="all">전체 업체 분석</option>'; uniqueVendors.forEach(v => { options += `<option value="${v}" ${currentVal === v ? 'selected' : ''}>${v}</option>`; }); filterSelect.innerHTML = options; }
+        window.resetReportFilters = () => { document.getElementById('reportStart').value = ''; document.getElementById('reportEnd').value = ''; document.getElementById('reportVendorFilter').value = 'all'; currentReportPage = 1; window.updateCharts(); };
+
+        window.handleReportFilterChange = () => {
+            currentReportPage = 1;
+            updateCharts();
         };
 
-        // 기존 기능 유지 및 확장
-        window.openModal = () => {
-            document.getElementById('editKey').value = '';
-            document.getElementById('mDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('mTitle').value = '';
-            document.getElementById('mAttendees').value = '';
-            document.getElementById('mContent').value = '';
-            document.getElementById('mImportant').checked = false;
-            document.querySelector('input[name="mType"][value="team"]').checked = true;
-            document.getElementById('meetingModal').style.display = 'flex';
+        window.changeReportPage = (p) => {
+            currentReportPage = p;
+            updateCharts();
         };
 
-        window.saveMeeting = () => {
-            const key = document.getElementById('editKey').value;
-            const newData = {
-                date: document.getElementById('mDate').value,
-                title: document.getElementById('mTitle').value,
-                attendees: document.getElementById('mAttendees').value,
-                content: document.getElementById('mContent').value,
-                important: document.getElementById('mImportant').checked,
-                type: document.querySelector('input[name="mType"]:checked').value
-            };
-            if(!newData.title) return alert('제목을 입력하세요.');
-            key === '' ? push(meetingsRef, newData) : update(ref(db, 'meetings/' + key), newData);
-            closeModal();
+        window.updateCharts = () => {
+            const start = document.getElementById('reportStart').value; const end = document.getElementById('reportEnd').value; const vendorFilter = document.getElementById('reportVendorFilter').value;
+            let filtered = [...invoices]; if (start) filtered = filtered.filter(i => i.invoiceDate >= start); if (end) filtered = filtered.filter(i => i.invoiceDate <= end); if (vendorFilter !== 'all') filtered = filtered.filter(i => i.vendor === vendorFilter);
+            
+            document.getElementById('report-table-count').innerText = `${filtered.length} Items`;
+            
+            if (currentReportMode === 'table') {
+                renderReportTable(filtered);
+            }
+            
+            if (filtered.length === 0) { clearCharts(); document.getElementById('insights-list').innerHTML = '<li class="text-rose-400">데이터가 없습니다.</li>'; return; }
+            const vSum = {}; const mSum = {}; const ySum = {};
+            filtered.forEach(i => { vSum[i.vendor] = (vSum[i.vendor] || 0) + i.amountKrw; const m = i.invoiceDate.substring(0, 7); if(m) mSum[m] = (mSum[m] || 0) + i.amountKrw; const y = i.invoiceDate.substring(0, 4); if(y) ySum[y] = (ySum[y] || 0) + i.amountKrw; });
+            const pCount = filtered.filter(i => i.isPaid).length;
+            
+            if (charts.vendor) charts.vendor.destroy(); charts.vendor = new Chart(document.getElementById('vendorChart'), { type:'doughnut', data:{ labels:Object.keys(vSum), datasets:[{data:Object.values(vSum), backgroundColor:['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'], borderWidth:0}]}, options:{responsive:true, maintainAspectRatio:false}});
+            if (charts.vendorBar) charts.vendorBar.destroy(); charts.vendorBar = new Chart(document.getElementById('vendorBarChart'), { type:'bar', data:{ labels:Object.keys(vSum), datasets:[{label:'지출액(KRW)', data:Object.values(vSum), backgroundColor:'#3b82f6', borderRadius:5}]}, options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+            if (charts.yearly) charts.yearly.destroy(); const yKeys = Object.keys(ySum).sort(); charts.yearly = new Chart(document.getElementById('yearlyChart'), { type:'bar', data:{ labels:yKeys.map(y=>y+'년'), datasets:[{label:'연간 합계', data:yKeys.map(k=>ySum[k]), backgroundColor:'#8b5cf6', borderRadius:8}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}});
+            if (charts.monthly) charts.monthly.destroy(); const sM = Object.keys(mSum).sort(); charts.monthly = new Chart(document.getElementById('monthlyChart'), { type:'bar', data:{ labels:sM, datasets:[{label:'지출액(KRW)', data:sM.map(m=>mSum[m]), backgroundColor:'#10b981', borderRadius:8}]}, options:{responsive:true, maintainAspectRatio:false}});
+            if (charts.status) charts.status.destroy(); charts.status = new Chart(document.getElementById('statusChart'), { type:'pie', data:{ labels:['지급완료','미지급'], datasets:[{data:[pCount, filtered.length - pCount], backgroundColor:['#10b981','#f43f5e']}]}, options:{responsive:true, maintainAspectRatio:false}});
+            const topV = Object.entries(vSum).sort((a,b)=>b[1]-a[1])[0];
+            document.getElementById('insights-list').innerHTML = `<li class="flex gap-2 items-center"><span>✅</span> 지출 1위: <b class="text-blue-400">${topV ? topV[0] : '-'}</b></li><li class="flex gap-2 items-center"><span>✅</span> 총 지출액: <b class="text-emerald-400">${filtered.reduce((a,b)=>a+b.amountKrw,0).toLocaleString()}원</b></li>`;
         };
 
-        window.deleteMeeting = (key) => { if(confirm('삭제하시겠습니까?')) remove(ref(db, 'meetings/' + key)); };
-        window.toggleDetails = (key) => document.getElementById('details-' + key).classList.toggle('active');
-        window.closeModal = () => document.getElementById('meetingModal').style.display = 'none';
-        window.prepareEdit = (key) => {
-            const m = allData.find(item => item.key === key);
-            document.getElementById('editKey').value = key;
-            document.getElementById('mDate').value = m.date;
-            document.getElementById('mTitle').value = m.title;
-            document.getElementById('mAttendees').value = m.attendees;
-            document.getElementById('mContent').value = m.content;
-            document.getElementById('mImportant').checked = m.important || false;
-            document.querySelector(`input[name="mType"][value="${m.type || 'team'}"]`).checked = true;
-            document.getElementById('meetingModal').style.display = 'flex';
-        };
+        function renderReportTable(data) {
+            const body = document.getElementById('reportDataOnlyBody');
+            const pagination = document.getElementById('reportPaginationControls');
+            
+            if (data.length === 0) { 
+                body.innerHTML = '<tr><td colspan="9" class="p-10 text-center">데이터 없음</td></tr>'; 
+                pagination.innerHTML = '';
+                return; 
+            }
+            
+            const sorted = data.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+            const totalPages = Math.ceil(sorted.length / reportItemsPerPage);
+            
+            // Slice for pagination
+            const startIdx = (currentReportPage - 1) * reportItemsPerPage;
+            const pagedItems = sorted.slice(startIdx, startIdx + reportItemsPerPage);
+            
+            body.innerHTML = pagedItems.map(inv => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4">${inv.invoiceDate}</td>
+                    <td class="p-4 font-mono text-slate-400">${inv.invoiceNo}</td>
+                    <td class="p-4 font-bold text-slate-800">${inv.vendor}</td>
+                    <td class="p-4">${inv.drafter}</td>
+                    <td class="p-4 text-slate-500">${inv.originalAmount.toLocaleString()} ${inv.originalCurrency}</td>
+                    <td class="p-4 font-bold text-blue-600">${inv.amountKrw.toLocaleString()}</td>
+                    <td class="p-4 font-bold text-amber-600">$ ${inv.amountUsd.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded text-[10px] font-black ${inv.isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${inv.isPaid ? 'PAID' : 'PENDING'}</span>
+                    </td>
+                    <td class="p-4 text-xs italic">${inv.remarks || '-'}</td>
+                </tr>`).join('');
+                
+            // Render Pagination for Report
+            if (totalPages <= 1) { 
+                pagination.innerHTML = ''; 
+            } else {
+                let html = `<button onclick="window.changeReportPage(${Math.max(1, currentReportPage - 1)})" class="p-2 text-slate-400 hover:text-slate-900 transition-colors ${currentReportPage === 1 ? 'invisible' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button onclick="window.changeReportPage(${i})" class="page-link w-8 h-8 rounded-lg text-xs font-bold border border-slate-200 flex items-center justify-center ${currentReportPage === i ? 'active' : 'bg-white text-slate-600 hover:bg-slate-50'}">${i}</button>`;
+                }
+                html += `<button onclick="window.changeReportPage(${Math.min(totalPages, currentReportPage + 1)})" class="p-2 text-slate-400 hover:text-slate-900 transition-colors ${currentReportPage === totalPages ? 'invisible' : ''}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>`;
+                pagination.innerHTML = html;
+            }
+        }
+
+        function clearCharts() { Object.values(charts).forEach(c => { if(c) c.destroy(); }); }
+        window.exportToExcel = () => { const start = document.getElementById('exportStart').value; const end = document.getElementById('exportEnd').value; let exportData = invoices; if (start) exportData = exportData.filter(i => i.invoiceDate >= start); if (end) exportData = exportData.filter(i => i.invoiceDate <= end); if (exportData.length === 0) return alert("데이터 없음"); const data = exportData.map(i => ({일자:i.invoiceDate, No:i.invoiceNo, 업체:i.vendor, 기안자:i.drafter, 원본금액:i.originalAmount, 통화:i.originalCurrency, KRW환산:i.amountKrw, USD환산:i.amountUsd, 상태:i.isPaid?'완료':'미지급', 비고:i.remarks})); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, `Report_${new Date().toISOString().slice(0,10)}.xlsx`); };
+        window.downloadBackup = () => { const data = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(invoices)); const a = document.createElement('a'); a.href = data; a.download = `Backup.json`; a.click(); };
+        window.switchView('view-dashboard');
     </script>
 </body>
 </html>
