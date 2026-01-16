@@ -39,17 +39,16 @@
         .meeting-item.is-important { border: 1.5px solid var(--color-important); box-shadow: 0 0 15px rgba(255, 71, 87, 0.1); }
         .meeting-item:hover { transform: translateY(-3px); background: rgba(30, 41, 59, 0.6); }
 
-        .meeting-summary { cursor: pointer; display: flex; align-items: stretch; }
+        .meeting-summary { cursor: pointer; display: flex; align-items: center; } /* 중앙 정렬로 변경 */
         
         /* Category Label Side */
-        .category-bar { width: 6px; }
+        .category-bar { width: 6px; align-self: stretch; }
         .cat-external { background: var(--color-external); }
         .cat-strategy { background: var(--color-strategy); }
         .cat-team { background: var(--color-team); }
 
-        .date-box { background: rgba(255,255,255,0.03); min-width: 100px; padding: 15px; text-align: center; border-right: 1px solid var(--card-border); }
-        .date-box .year { font-size: 0.7rem; color: var(--text-dim); display: block; }
-        .date-box .day { font-size: 1.4rem; font-weight: 800; color: var(--accent); display: block; }
+        .date-box { background: rgba(255,255,255,0.03); min-width: 140px; padding: 15px; text-align: center; border-right: 1px solid var(--card-border); }
+        .date-box .full-date { font-size: 0.9rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
 
         .info-box { flex-grow: 1; padding: 15px 25px; }
         .title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -165,7 +164,6 @@
         let currentPage = 1;
         const itemsPerPage = 7;
 
-        // 데이터 실시간 감시
         onValue(meetingsRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -174,10 +172,9 @@
             } else {
                 allData = [];
             }
-            handleSearch(); // 초기 렌더링 포함
+            handleSearch();
         });
 
-        // 검색 처리
         window.handleSearch = () => {
             const query = document.getElementById('searchInput').value.toLowerCase();
             filteredData = allData.filter(m => 
@@ -188,7 +185,6 @@
             renderList();
         };
 
-        // 리스트 렌더링
         function renderList() {
             const list = document.getElementById('meetingList');
             const startIndex = (currentPage - 1) * itemsPerPage;
@@ -200,13 +196,15 @@
                 const dateObj = new Date(m.date);
                 const typeMap = { team: '팀회의', strategy: '전략회의', external: '외부회의' };
                 
+                // 날짜 표시 형식 변경: 2000년 1월 13일
+                const formattedDate = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
+
                 list.innerHTML += `
                     <div class="meeting-item ${m.important ? 'is-important' : ''}">
                         <div class="meeting-summary" onclick="toggleDetails('${m.key}')">
                             <div class="category-bar cat-${m.type || 'team'}"></div>
                             <div class="date-box">
-                                <span class="year">${dateObj.getFullYear()}</span>
-                                <span class="day">${String(dateObj.getDate()).padStart(2,'0')}</span>
+                                <span class="full-date">${formattedDate}</span>
                             </div>
                             <div class="info-box">
                                 <div class="title-row">
@@ -229,7 +227,6 @@
             renderPagination();
         }
 
-        // 페이지네이션 버튼 렌더링
         function renderPagination() {
             const container = document.getElementById('pagination');
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -249,7 +246,6 @@
             window.scrollTo({ top: 400, behavior: 'smooth' });
         };
 
-        // 기존 기능 유지 및 확장
         window.openModal = () => {
             document.getElementById('editKey').value = '';
             document.getElementById('mDate').value = new Date().toISOString().split('T')[0];
