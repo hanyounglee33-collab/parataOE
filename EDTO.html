@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDTO Review Gate - Flight Tech Team v9</title>
+    <style>
+        :root {
+            --navy: #002B5B; --gold: #D4AF37; --bg: #F4F7F9;
+            --success: #28A745; --active: #FF9800; --danger: #DC3545;
+        }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* 최상단 전체 진행률 바 */
+        .top-progress-section { 
+            background: white; padding: 30px; border-radius: 20px; margin-bottom: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .main-bar-bg { background: #E2E8F0; height: 45px; border-radius: 25px; overflow: hidden; position: relative; margin-bottom: 10px; }
+        .main-bar-fill { 
+            height: 100%; width: 0%; 
+            background: linear-gradient(90deg, var(--navy) 0%, #4A90E2 100%); 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-weight: 900; font-size: 20px; transition: width 0.6s ease;
+        }
+
+        /* Gate별 날짜 박스 */
+        .gate-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
+        .gate-card { background: white; border-radius: 15px; padding: 15px; text-align: center; border: 2px solid #E2E8F0; }
+        .gate-card.passed { border-color: var(--success); background: #F0FFF4; }
+        .gate-card.current { border-color: var(--active); background: #FFFBEB; }
+        .gate-card.critical { border: 2px solid var(--gold); }
+        .gate-card h3 { margin: 0; font-size: 13px; color: #64748B; }
+        .date-input { border: 1px solid #CBD5E0; border-radius: 5px; padding: 5px; font-size: 13px; font-weight: bold; width: 100%; text-align: center; margin-top: 5px; cursor: pointer; }
+
+        /* 세부 체크리스트 그리드 */
+        .checklist-section { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .check-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .check-card h2 { font-size: 18px; margin: 0 0 15px; border-bottom: 2px solid var(--navy); padding-bottom: 10px; display: flex; justify-content: space-between; }
+        .gate-badge { font-size: 12px; background: var(--navy); color: white; padding: 2px 8px; border-radius: 4px; }
+        
+        .items { list-style: none; padding: 0; }
+        .items li { padding: 10px 0; font-size: 13px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: flex-start; gap: 10px; }
+        .items input { width: 18px; height: 18px; margin-top: 2px; cursor: pointer; }
+        .items label { cursor: pointer; flex: 1; line-height: 1.4; }
+        .items span.dept { font-size: 10px; color: #94A3B8; background: #F8FAFC; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+
+        .gate3-highlight { background: #FFFDF5; border: 2px solid var(--gold) !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <section class="top-progress-section">
+        <h1 id="titleText">📊 EDTO Review Gate 통합 공정률: <span id="percentText">0%</span></h1>
+        <div class="main-bar-bg"><div id="mainProgress" class="main-bar-fill">0%</div></div>
+        <div style="font-size: 13px; color: #666;">기준일: 2026-01-18 | Gate 3 통과 시 EDTO 시행 가능</div>
+    </section>
+
+    <section class="gate-grid">
+        <div class="gate-card" id="card1"><h3>Gate 1</h3><b>준비/신청</b><input type="date" class="date-input" id="date1" value="2026-01-20"></div>
+        <div class="gate-card" id="card2"><h3>Gate 2</h3><b>기술심의</b><input type="date" class="date-input" id="date2" value="2026-03-20"></div>
+        <div class="gate-card critical" id="card3"><h3>Gate 3</h3><b>인가/취항 ⭐</b><input type="date" class="date-input" id="date3" value="2026-05-20"></div>
+        <div class="gate-card" id="card4"><h3>Gate 4</h3><b>초기감시</b><input type="date" class="date-input" id="date4" value="2026-07-20"></div>
+        <div class="gate-card" id="card5"><h3>Gate 5</h3><b>상시유지</b><input type="date" class="date-input" id="date5" value="2026-10-20"></div>
+    </section>
+
+    <div class="checklist-section">
+        <div class="check-card" id="gate1List">
+            <h2>Review Gate 1 <span class="gate-badge">기초 서류 및 규정 수립</span></h2>
+            <ul class="items">
+                <li><input type="checkbox" id="chk1_1"><label for="chk1_1">1. 정비규정 개정, EDTO Manual 제정 (정비업무절차 개정)</label> <span class="dept">품질/기술</span></li>
+                <li><input type="checkbox" id="chk1_2"><label for="chk1_2">2. 항공기 장비 SPEC 검토 (CMP 준수 여부)</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk1_3"><label for="chk1_3">3. 기술변경사항 검토 (SB/AD)</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk1_4"><label for="chk1_4">4. EDTO Program Document 검토</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk1_5"><label for="chk1_5">5. EDTO PDSC 항목/절차/카드 제정</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk1_6"><label for="chk1_6">6. Dual Maintenance Program 수립</label> <span class="dept">품질보증</span></li>
+                <li><input type="checkbox" id="chk1_7"><label for="chk1_7">7. Verification Program 수립</label> <span class="dept">정비통제</span></li>
+                <li><input type="checkbox" id="chk1_8"><label for="chk1_8">8. Task Identification (EDTO TASK CARD) 작성</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk1_9"><label for="chk1_9">9. Maintenance Control 지원 절차 제정</label> <span class="dept">정비통제</span></li>
+                <li><input type="checkbox" id="chk1_10"><label for="chk1_10">10. EDTO Parts Control Program 수립</label> <span class="dept">자재지원</span></li>
+                <li><input type="checkbox" id="chk1_11"><label for="chk1_11">11. Reliability Program & Report 체계 수립</label> <span class="dept">품질보증</span></li>
+            </ul>
+        </div>
+
+        <div class="check-card">
+            <h2>Review Gate 2 <span class="gate-badge">모니터링 및 교육</span></h2>
+            <ul class="items">
+                <li><input type="checkbox" id="chk2_1"><label for="chk2_1">Propulsion System Monitoring Program</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk2_2"><label for="chk2_2">Engine Condition Monitoring Program</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk2_3"><label for="chk2_3">Auxiliary Power Unit(APU) In-Flight Start Program</label> <span class="dept">정비기술</span></li>
+                <li><input type="checkbox" id="chk2_4"><label for="chk2_4">Maintenance Training Program & 교육 실시</label> <span class="dept">정비기획</span></li>
+            </ul>
+        </div>
+
+        <div class="check-card gate3-highlight">
+            <h2>Review Gate 3 ⭐ <span class="gate-badge" style="background:var(--gold);">운항 개시 분기점</span></h2>
+            <ul class="items">
+                <li><input type="checkbox" id="chk3_1"><label for="chk3_1">EDTO 시범운항 (Validation Flight)</label> <span class="dept">정비본부전팀</span></li>
+                <li><input type="checkbox" id="chk3_2"><label for="chk3_2">실제/모의 EDTO Dispatch 및 운항</label> <span class="dept">정비본부전팀</span></li>
+                <li><input type="checkbox" id="chk3_3"><label for="chk3_3">국토부 운영기준(Ops Spec) 인가 취득</label> <span class="dept">품질보증팀</span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase SDK 임포트
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
+        authDomain: "parataoe-769bb.firebaseapp.com",
+        databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com",
+        projectId: "parataoe-769bb",
+        storageBucket: "parataoe-769bb.firebasestorage.app",
+        messagingSenderId: "964545748384",
+        appId: "1:964545748384:web:f882221099022e4271d8c5",
+        measurementId: "G-5LJ4QR4XED"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const edtoRef = ref(db, 'edto_status');
+
+    const TODAY = new Date("2026-01-18");
+    const START_DATE = new Date("2025-12-01");
+
+    // 1. 진행률 및 UI 업데이트 함수
+    function syncUI() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const checked = document.querySelectorAll('input[type="checkbox"]:checked');
+        const checkPercent = checkboxes.length > 0 ? Math.round((checked.length / checkboxes.length) * 100) : 0;
+        
+        const dates = [
+            new Date(document.getElementById('date1').value),
+            new Date(document.getElementById('date2').value),
+            new Date(document.getElementById('date3').value),
+            new Date(document.getElementById('date4').value),
+            new Date(document.getElementById('date5').value)
+        ];
+
+        for (let i = 0; i < dates.length; i++) {
+            const card = document.getElementById(`card${i+1}`);
+            const prevDate = (i === 0) ? START_DATE : dates[i-1];
+            if (TODAY >= dates[i]) {
+                card.className = "gate-card passed";
+            } else if (TODAY > prevDate) {
+                card.className = "gate-card current";
+            } else {
+                card.className = "gate-card";
+            }
+        }
+        
+        if (document.getElementById('card3').className.includes('current') || TODAY >= dates[2]) {
+            document.getElementById('card3').classList.add('critical');
+        }
+
+        const progressBar = document.getElementById('mainProgress');
+        progressBar.style.width = checkPercent + "%";
+        progressBar.innerText = checkPercent + "%";
+        document.getElementById('percentText').innerText = checkPercent + "%";
+    }
+
+    // 2. Firebase 데이터 수신 (최초 로드 및 다른 기기 수정 시 자동 반영)
+    onValue(edtoRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // 체크박스 상태 복구
+            if (data.checklists) {
+                Object.keys(data.checklists).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.checked = data.checklists[id];
+                });
+            }
+            // 날짜 상태 복구
+            if (data.dates) {
+                Object.keys(data.dates).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = data.dates[id];
+                });
+            }
+            syncUI();
+        }
+    });
+
+    // 3. 데이터 저장 이벤트 바인딩
+    // 체크박스 클릭 시 저장
+    document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+            const updates = {};
+            updates[`checklists/${e.target.id}`] = e.target.checked;
+            update(edtoRef, updates);
+        });
+    });
+
+    // 날짜 변경 시 저장
+    document.querySelectorAll('.date-input').forEach(dateInput => {
+        dateInput.addEventListener('change', (e) => {
+            const updates = {};
+            updates[`dates/${e.target.id}`] = e.target.value;
+            update(edtoRef, updates);
+        });
+    });
+
+</script>
+</body>
+</html>
