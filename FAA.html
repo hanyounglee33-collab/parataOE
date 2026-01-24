@@ -17,12 +17,12 @@
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg-light); margin: 0; color: #1E293B; }
         .wrapper { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
 
-        /* Sidebar */
+        /* Sidebar - 메뉴 가독성 및 색상 강조 */
         aside { background: var(--primary-navy); color: white; padding: 30px 20px; position: sticky; top: 0; height: 100vh; box-sizing: border-box; }
         .logo { font-size: 24px; font-weight: 800; color: var(--accent-gold); margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
         .nav-group-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin: 20px 0 10px 10px; letter-spacing: 1px; }
-        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; }
-        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; color: rgba(255,255,255,0.8); }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
         .nav-item.active { background: var(--accent-gold); color: white; font-weight: 700; }
 
         /* Main Content */
@@ -35,12 +35,12 @@
         .monitoring-card { background: var(--white); padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 5px solid var(--status-done); text-align: right; }
         .d-day-text { font-size: 24px; font-weight: 800; color: var(--danger); margin-bottom: 2px; }
 
-        /* Progress Bar */
+        /* Progress Bar (Dashboards only) */
         .progress-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-left: 10px solid var(--theme-color); }
         .progress-bar-bg { width: 100%; height: 12px; background: #E2E8F0; border-radius: 10px; margin-top: 10px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--status-done); transition: 0.5s; width: 0%; }
 
-        /* Common Styles */
+        /* Tables & Inputs */
         .card { background: var(--white); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); margin-bottom: 25px; }
         .card-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--primary-navy); }
         .control-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: #F1F5F9; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-top: 4px solid var(--theme-color); }
@@ -51,22 +51,18 @@
         table.task-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .task-table th { background: #F8FAFC; padding: 15px; font-size: 12px; text-align: left; border-bottom: 2px solid var(--theme-color); }
         .task-table td { padding: 15px; border-bottom: 1px solid #F1F5F9; font-size: 14px; }
-        .memo-box { background:#f8fafc; padding:10px; border-radius:6px; font-size:12px; color: #475569; }
-        .btn-act { padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white; font-size: 12px; margin-right: 5px; transition: 0.2s; }
-        .btn-act:hover { background: #F1F5F9; }
-
-        /* Overview Specific */
-        .tag { padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #EDF2F7; color: #4A5568; margin-right: 10px; }
-        .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-        .schedule-table th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 1px solid #cbd5e1; }
-        .schedule-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .btn-act { padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: white; font-size: 12px; margin-right: 5px; }
 
         /* Modal */
         #modal_edit { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; }
         .modal-body { background:white; padding:30px; border-radius:20px; width:500px; box-shadow:0 20px 40px rgba(0,0,0,0.3); }
 
-        /* Info Layout */
+        /* Info Styling */
         .info-section h3 { color: var(--primary-navy); border-left: 4px solid var(--accent-gold); padding-left: 12px; margin-top: 25px; }
+        .tag { padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; background: #EDF2F7; color: #4A5568; margin-right: 10px; }
+        .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        .schedule-table th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 1px solid #cbd5e1; }
+        .schedule-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
     </style>
 </head>
 <body>
@@ -89,14 +85,11 @@
 
 <div class="wrapper">
     <aside>
-        <div class="logo">PARATA AIR OE</div>
+        <div class="logo">PARATA AIR FLT OPS ENGEERING</div>
         <div class="nav-item active" onclick="showPage('overview', this)">🏠 프로젝트 개요 (Home)</div>
-        <div class="nav-group-label">Operations Engineering Team</div>
         <div class="nav-item" onclick="showPage('dashboard', this)">📊 통합 대시보드</div>
         <div class="nav-item" onclick="showPage('opspecs', this)">⚙️ 운영기준변경 (OpSpecs)</div>
         <div class="nav-item" onclick="showPage('edto', this)" style="border: 1px solid var(--accent-gold);">👑 EDTO</div>
-        
-        <div class="nav-group-label">Authority & Systems</div>
         <div class="nav-item" onclick="showPage('faa129', this)">✈️ FAA Part 129-TWG</div>
         <div class="nav-item" onclick="showPage('security', this)">🛡️ FAA/TSA 보안 (Info)</div>
         <div class="nav-item" onclick="showPage('customs', this)">📦 Customs Bond (Info)</div>
@@ -156,22 +149,22 @@
 
         <section id="security" class="page-section">
             <div class="card info-section">
-                <div class="card-title">🛡️ FAA/TSA 보안 규정 안내</div>
+                <div class="card-title">🛡️ FAA/TSA 보안 체계 안내 (Info)</div>
                 <h3>1. TSA Security Program (SDSP)</h3>
-                <p>미주 취항을 위한 TSA 표준 보안 프로그램 수립이 필수입니다.</p>
+                <p>미주 취항을 위해 TSA 표준 보안 프로그램(Standard Security Program) 수립이 필수입니다.</p>
                 <div style="background:#F8FAFC; padding:15px; border-radius:12px; font-size:14px; line-height:1.8;">
                     • TSA IIR (International Industry Representative) 공식 채널 확보<br>
                     • 항공기 보안, 승객 검색, 수하물 관리 표준 절차(SOP) 제출 및 승인<br>
                     • 공항별 보안 책임자 지정 및 필수 교육 프로그램 이수
                 </div>
-                <h3>2. 데이터 전송 체계</h3>
-                <p>승무원 및 승객 정보를 미국 CBP/DHS로 전송하는 시스템 인프라 구축.</p>
+                <h3>2. 보안 통제 책임</h3>
+                <p>항공기 내외부 보안 및 지점 내 보안 구역 관리에 대한 구체적인 매뉴얼 수립이 동반되어야 합니다.</p>
             </div>
         </section>
 
         <section id="customs" class="page-section">
             <div class="card info-section">
-                <div class="card-title">📦 Customs Bond 및 CBP 세관 절차</div>
+                <div class="card-title">📦 Customs Bond 및 CBP 세관 절차 (Info)</div>
                 <h3>1. US Customs Bond (C2/C3)</h3>
                 <p>미국 세관 의무 이행 보증을 위한 본드 가입 절차 안내입니다.</p>
                 <div style="background:#F8FAFC; padding:15px; border-radius:12px; font-size:14px; line-height:1.8;">
@@ -182,13 +175,34 @@
                 <p>LAX 공항 세관의 Port of Entry 승인 및 User Fee 계좌 개설 절차 필요.</p>
             </div>
         </section>
+
+        <section id="apis" class="page-section">
+            <div class="card info-section">
+                <div class="card-title">💻 APIS (Advance Passenger Information System)</div>
+                <p>미국 입출항 항공기가 승객 및 승무원의 신원 정보를 사전에 CBP(미국 관세국경보호청)에 전송하는 시스템입니다.</p>
+                
+                <h3>1. 주요 전송 데이터</h3>
+                <div style="background:#F8FAFC; padding:15px; border-radius:12px; font-size:14px; line-height:1.8;">
+                    • 성명, 생년월일, 성별, 국적, 여권번호<br>
+                    • 미국 내 체류 주소(최초 입국 시 필수 정보)<br>
+                    • 승무원 매니페스트 (Crew Manifest)
+                </div>
+
+                <h3>2. 전송 시점 준수 (Strict)</h3>
+                <div style="background:#FFF9F0; border-left:4px solid #F59E0B; padding:12px; font-size:14px;">
+                    <strong>승객 정보:</strong> 항공기 문 폐쇄(Door Close) 즉시 전송<br>
+                    <strong>승무원 정보:</strong> 이륙 60분 전까지 최종 리스트 전송
+                </div>
+
+                <h3>3. 비고</h3>
+                <p>본 업무는 전산 시스템 및 외부 IT 조업사와의 연동이 핵심이며, 보안 승인과는 별개의 시스템 승인 절차를 거칩니다.</p>
+            </div>
+        </section>
     </main>
 </div>
 
-
-
 <script>
-    // [1] FIREBASE 연결 (제공해주신 설정값 적용)
+    // [1] FIREBASE 연결 (사용자 설정값 고정)
     const firebaseConfig = {
         apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
         authDomain: "parataoe-769bb.firebaseapp.com",
@@ -202,18 +216,17 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // [2] STORAGE & THEMES
+    // [2] THEMES (대시보드 전용 섹션만 포함)
     let storage = {};
     const themes = {
         dashboard: { color: '#002349', label: '담당 팀' },
         opspecs: { color: '#0D9488', label: '담당자' },
         edto: { color: '#C5A059', label: '담당자' },
-        faa129: { color: '#1E3A8A', label: '담당자' },
-        apis: { color: '#6D28D9', label: '담당 팀' }
+        faa129: { color: '#1E3A8A', label: '담당자' }
     };
     let activeSid = 'overview';
 
-    // Real-time Database Listener
+    // Firebase Listener
     db.ref('parata_us_launch').on('value', (snapshot) => {
         storage = snapshot.val() || {};
         if (themes[activeSid]) renderBoard(activeSid);
@@ -224,35 +237,32 @@
         const theme = themes[sid];
         const container = document.getElementById('board_section');
         document.documentElement.style.setProperty('--theme-color', theme.color);
-
         const dataObj = storage[sid] || {};
-        const dataKeys = Object.keys(dataObj).reverse(); // 최신순
-        const total = dataKeys.length;
+        const dataKeys = Object.keys(dataObj).reverse();
         const done = Object.values(dataObj).filter(i => i.status === '완료').length;
-        const prog = total > 0 ? Math.round((done / total) * 100) : 0;
+        const prog = dataKeys.length > 0 ? Math.round((done / dataKeys.length) * 100) : 0;
 
         container.innerHTML = `
             <div class="progress-card">
                 <div style="display:flex; justify-content:space-between; font-weight:800;">
-                    <span>${sid.toUpperCase()} 전체 진행률</span><span>${prog}% (${done}/${total} 완료)</span>
+                    <span>${sid.toUpperCase()} 진행률</span><span>${prog}%</span>
                 </div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${prog}%"></div></div>
             </div>
             <div class="control-panel">
                 <div class="input-group" style="grid-column: span 2;"><label>업무명</label><input type="text" id="in_name"></div>
-                <div class="input-group"><label>${theme.label}</label><input type="text" id="in_team" placeholder="${theme.label} 입력"></div>
+                <div class="input-group"><label>${theme.label}</label><input type="text" id="in_team"></div>
                 <div class="input-group"><label>기한</label><input type="date" id="in_date"></div>
                 <div class="input-group" style="grid-column: span 3;"><label>상세 지시</label><textarea id="in_memo" rows="2"></textarea></div>
                 <div class="input-group"><label>상태</label><select id="in_status"><option>진행중</option><option>완료</option><option>대기</option></select></div>
-                <button class="btn-primary" onclick="addData('${sid}')">신규 업무 등록 및 클라우드 저장</button>
+                <button class="btn-primary" onclick="addData('${sid}')">신규 업무 등록</button>
             </div>
             <table class="task-table">
                 <thead><tr><th>${theme.label}</th><th>업무명</th><th>기한</th><th>상태</th><th>메모</th><th>관리</th></tr></thead>
                 <tbody>
                     ${dataKeys.map(key => {
                         const i = dataObj[key];
-                        return `
-                        <tr>
+                        return `<tr>
                             <td><b>${i.team}</b></td><td>${i.name}</td><td>${i.date}</td>
                             <td><span style="color:var(--status-${i.status==='완료'?'done':'progress'}); font-weight:800;">● ${i.status}</span></td>
                             <td><div class="memo-box">${i.memo}</div></td>
@@ -267,26 +277,19 @@
         `;
     }
 
-    // [4] CLOUD CRUD
     function addData(sid) {
         const name = document.getElementById('in_name').value;
         if(!name) return alert("업무명을 입력하세요.");
-        const newItem = {
+        db.ref(`parata_us_launch/${sid}`).push({
             team: document.getElementById('in_team').value,
             name: name, date: document.getElementById('in_date').value,
             status: document.getElementById('in_status').value,
             memo: document.getElementById('in_memo').value
-        };
-        db.ref(`parata_us_launch/${sid}`).push(newItem);
+        });
     }
 
-    function deleteData(sid, key) {
-        if(confirm("이 항목을 클라우드에서 영구 삭제하시겠습니까?")) {
-            db.ref(`parata_us_launch/${sid}/${key}`).remove();
-        }
-    }
+    function deleteData(sid, key) { if(confirm("영구 삭제하시겠습니까?")) db.ref(`parata_us_launch/${sid}/${key}`).remove(); }
 
-    // [5] MODAL EDIT LOGIC
     function openEdit(sid, key) {
         const item = storage[sid][key];
         document.getElementById('edit_key').value = key;
@@ -301,27 +304,35 @@
 
     function saveEdit() {
         const key = document.getElementById('edit_key').value;
-        const updated = {
+        db.ref(`parata_us_launch/${activeSid}/${key}`).update({
             name: document.getElementById('edit_name').value,
             team: document.getElementById('edit_team').value,
             date: document.getElementById('edit_date').value,
             status: document.getElementById('edit_status').value,
             memo: document.getElementById('edit_memo').value
-        };
-        db.ref(`parata_us_launch/${activeSid}/${key}`).update(updated)
-          .then(() => closeModal());
+        }).then(() => closeModal());
     }
 
     function closeModal() { document.getElementById('modal_edit').style.display = 'none'; }
 
-    // [6] UI CONTROL
     function showPage(pageId, element) {
         activeSid = pageId;
         document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         element.classList.add('active');
-        const titleMap = { overview: "U.S. Launch Project Overview", dashboard: "Integrated Task Dashboard", opspecs: "OpSpecs Management", edto: "EDTO Strategic Management", faa129: "FAA Part 129-TWG", security: "FAA/TSA Security Info", customs: "Customs Bond & CBP Info", apis: "APIS Manifest System" };
+
+        const titleMap = { 
+            overview: "U.S. Launch Project Overview", 
+            dashboard: "Integrated Task Dashboard", 
+            opspecs: "OpSpecs Management", 
+            edto: "EDTO Strategic Management", 
+            faa129: "FAA Part 129-TWG", 
+            security: "FAA/TSA Security Info", 
+            customs: "Customs Bond & CBP Info", 
+            apis: "APIS Manifest System" 
+        };
         document.getElementById('page_title').innerText = titleMap[pageId];
+
         if (themes[pageId]) {
             renderBoard(pageId);
             document.getElementById('board_section').classList.add('active');
