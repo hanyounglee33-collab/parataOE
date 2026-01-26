@@ -3,591 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parata Air: CAT II/III 운항 승인 추진 계획서</title>
-    
+    <title>CAT II/III 실적 관리 시스템 | PARATA AIR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
-
-    <!-- Font Awesome for Icons (Text-based, not SVG graphics) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        /* Custom Font Application */
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #F3F4F6; /* Light Gray Background */
+        :root {
+            --bg-dark: #0f172a; --primary: #3b82f6; --accent: #00f2ff;
+            --card-border: rgba(255, 255, 255, 0.08); --text-dim: #94a3b8;
+            --color-important: #ff4757;
         }
-
-        /* Palette Definition: Vibrant Tech
-           Primary: #0F172A (Slate 900)
-           Accent 1: #06B6D4 (Cyan 500)
-           Accent 2: #F97316 (Orange 500)
-           Accent 3: #3B82F6 (Blue 500)
-        */
-
-        .text-primary { color: #0F172A; }
-        .bg-primary { background-color: #0F172A; }
-        .text-accent-cyan { color: #06B6D4; }
-        .bg-accent-cyan { background-color: #06B6D4; }
-        .text-accent-orange { color: #F97316; }
-        .bg-accent-orange { background-color: #F97316; }
-        .text-accent-blue { color: #3B82F6; }
-        .bg-accent-blue { background-color: #3B82F6; }
-
-        /* Chart Container Styling - MANDATORY */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px; /* Max width to prevent stretching */
-            height: 400px;    /* Base height */
-            max-height: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 300px;
-            }
-        }
-
-        /* Card Styling */
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Custom Timeline Connector */
-        .timeline-line {
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: #E5E7EB;
-            transform: translateX(-50%);
-            z-index: 0;
-        }
-    </style>
-    <!-- 
-    PALETTE SELECTION: "Vibrant Tech"
-    Based on the need for professional yet urgent airline operations visualization.
-    Colors: Slate (Depth), Cyan (Future/Tech), Orange (Alert/Action).
-    -->
-    <!-- 
-    HTML COMMENT: Narrative Plan
-    1. Introduction: Objective (CAT II/III by late 2026) & Urgency.
-    2. Regulatory Roadmap: Timeline visualization (Jan-Sep).
-    3. Legal Basis: Breakdown of regulations (Act, Regulations, Manuals).
-    4. Compliance Workload: Radar chart of departmental tasks.
-    5. Operational Validation: Projection of 100 Auto-lands (Line Chart).
-    6. Action Items: Meeting Request & Critical Path.
-    -->
-    <!--
-    HTML COMMENT: Visualization Choice Justification
-    1. Timeline -> Goal: Change -> Chart Type: Horizontal Bar (Gantt approximation) -> Shows phases clearly over time. NO SVG.
-    2. Dept Workload -> Goal: Compare -> Chart Type: Radar Chart -> Compares multi-faceted readiness across depts. NO SVG.
-    3. Auto-landings -> Goal: Change/Target -> Chart Type: Line/Area Chart -> Shows accumulation towards target (100). NO SVG.
-    4. Readiness -> Goal: Inform -> Chart Type: Donut Chart -> Simple completion status. NO SVG.
-    NEITHER Mermaid JS NOR SVG were used.
-    -->
-</head>
-<body class="text-gray-800">
-
-    <!-- Header Section -->
-    <header class="bg-primary text-white pt-12 pb-24 px-6 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2 bg-accent-orange"></div>
-        <div class="container mx-auto max-w-6xl relative z-10">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                    <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-2">
-                        CAT II/III <span class="text-accent-cyan">운항 승인</span> 추진 계획서
-                    </h1>
-                    <p class="text-gray-400 text-lg font-light">
-                        파라타항공(Parata Air) 운항기술팀 | A320 & A330 Fleet
-                    </p>
-                </div>
-                <div class="mt-6 md:mt-0 text-right">
-                    <div class="inline-block bg-accent-orange px-4 py-2 rounded-lg font-bold shadow-lg">
-                        Target: 2026.09
-                    </div>
-                    <p class="text-sm text-gray-400 mt-1">D-Day: 2026.04 (신청)</p>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content Grid -->
-    <main class="container mx-auto max-w-6xl px-4 -mt-16 relative z-20 pb-20">
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-dark); color: #f8fafc; line-height: 1.6; }
         
-        <!-- Executive Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <!-- Card 1: Status -->
-            <div class="card border-l-4 border-accent-orange">
-                <h3 class="text-gray-500 text-sm font-bold uppercase mb-2">현재 상태 (Status)</h3>
-                <div class="text-3xl font-bold text-primary mb-1">Initial Phase</div>
-                <p class="text-sm text-gray-600">
-                    운항 경험 없음 (None).<br>
-                    전반적인 규정 수립 및 훈련 필요.
-                </p>
+        /* 탭 네비게이션 */
+        .tab-active { border-bottom: 4px solid var(--primary); color: var(--primary); font-weight: 700; }
+        .tab-inactive { color: var(--text-dim); }
+        .tab-inactive:hover { color: #fff; }
+
+        .chart-container { position: relative; width: 100%; height: 200px; }
+
+        /* 출력 스타일 */
+        @media print {
+            .no-print { display: none !important; }
+            #printable-area, #printable-area * { visibility: visible; }
+            body { background: white; color: black; padding: 0; }
+            .bg-slate-800, .bg-slate-900 { background: #f8fafc !important; color: black; border: 1px solid #ddd; }
+            .text-white, .text-slate-400, .text-blue-400 { color: black !important; }
+        }
+
+        #landingCanvas { background: #000; border-radius: 2rem; box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
+        
+        input, select, textarea { background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: #fff; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+
+        #auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* 지침 섹션 카드 스타일 (평면형) */
+        .compliance-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 24px; padding: 30px; height: 100%; transition: 0.3s; }
+        .compliance-card h3 { color: var(--accent); font-family: 'Montserrat'; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; }
+        
+        .comp-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin: 10px 0; }
+        .comp-table th { background: rgba(255,255,255,0.05); color: #94a3b8; padding: 10px; border: 1px solid var(--card-border); text-align: center; }
+        .comp-table td { padding: 10px; border: 1px solid var(--card-border); color: #e2e8f0; }
+
+        .theory-box { background: rgba(59, 130, 246, 0.05); border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 15px 15px 0; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- 데이터 연결 로딩 오버레이 -->
+    <div id="auth-overlay" class="no-print">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+        <p id="loading-text" class="text-slate-400 font-bold text-center">
+            PARATA AIR 데이터 센터 동기화 중...<br>
+            <span class="text-[10px] font-normal text-slate-500 mt-2 block tracking-widest uppercase italic">Syncing Cloud Ledger</span>
+        </p>
+    </div>
+
+    <!-- Header Navigation -->
+    <nav class="fixed top-0 w-full h-[75px] z-[1000] bg-white border-b border-slate-200 flex justify-between items-center px-[5%] no-print">
+        <a href="index.html" class="flex items-center gap-3 text-slate-900 no-underline">
+            <img src="ci.png" alt="Logo" class="h-8">
+            <div class="border-l border-slate-300 pl-3 leading-tight">
+                <b class="font-black text-xs font-[Montserrat] uppercase tracking-tighter">Flight Operation<br>Engineering</b>
             </div>
-            <!-- Card 2: Aircraft -->
-            <div class="card border-l-4 border-accent-cyan">
-                <h3 class="text-gray-500 text-sm font-bold uppercase mb-2">대상 항공기 (Fleet)</h3>
-                <div class="text-3xl font-bold text-primary mb-1">A320 / A330</div>
-                <p class="text-sm text-gray-600">
-                    AFM상 Auto-land 및 Low Visibility 기능 탑재 확인 완료.
-                </p>
-            </div>
-            <!-- Card 3: Critical Path -->
-            <div class="card border-l-4 border-accent-blue">
-                <h3 class="text-gray-500 text-sm font-bold uppercase mb-2">핵심 과제 (Goal)</h3>
-                <div class="text-3xl font-bold text-primary mb-1">100 Flights</div>
-                <p class="text-sm text-gray-600">
-                    실운항 검증(Demonstration) 자동착륙 100회 성공 필수.
-                </p>
-            </div>
+        </a>
+        <div class="flex gap-8 h-full items-center font-bold text-[12px] uppercase tracking-wider text-slate-500">
+            <button onclick="switchTab('intro')" id="nav-intro" class="tab-active py-2">Intro</button>
+            <button onclick="switchTab('compliance')" id="nav-compliance" class="tab-inactive py-2">Compliance</button>
+            <button onclick="switchTab('plan')" id="nav-plan" class="tab-inactive py-2">Plan</button>
+            <button onclick="switchTab('data')" id="nav-data" class="tab-inactive py-2 text-blue-600">Performance Log</button>
         </div>
+    </nav>
 
-        <!-- Section 1: Project Timeline -->
-        <section class="mb-16">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-primary border-l-4 border-accent-blue pl-4">1. 추진 일정 (Project Roadmap 2026)</h2>
-                <p class="mt-2 text-gray-600">
-                    CAT II/III 승인은 단순 서류 작업이 아닙니다. 규정 개정, 인력 교육, 그리고 실제 운항 검증이 순차적으로 이루어져야 하는 복합 프로젝트입니다. 
-                    파라타항공은 운항 경험이 없으므로, **2026년 1월부터 9월까지** 타이트한 일정이 예상됩니다.
-                </p>
-            </div>
+    <main class="mt-[110px] max-w-[1400px] mx-auto px-6 pb-24">
 
-            <div class="card">
-                <div class="chart-container">
-                    <canvas id="timelineChart"></canvas>
-                </div>
-                <div class="mt-4 text-xs text-center text-gray-500">
-                    * CAE Sim Slot 확보 상황에 따라 교육 일정 변동 가능성 존재 (Risk Factor)
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Legal & Regulatory Framework -->
-        <section class="mb-16">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-primary border-l-4 border-accent-blue pl-4">2. 법적 근거 및 필수 요건 (Regulatory Basis)</h2>
-                <p class="mt-2 text-gray-600">
-                    본 승인은 「항공안전법」 및 「운항기술기준」에 의거하여 진행됩니다. 특히 **별표 8.1.11.8 (정밀계기접근 제2종 교범)** 준수가 핵심입니다.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Legal Hierarchy Viz -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="font-bold text-lg mb-4 text-primary">규정 체계도</h3>
-                    <div class="space-y-4">
-                        <div class="bg-gray-100 p-3 rounded border-l-4 border-gray-800">
-                            <div class="font-bold">항공안전법 시행규칙 제108조</div>
-                            <div class="text-sm text-gray-600">운항증명(AOC) 및 운영기준(Ops Specs) 변경 신청</div>
+        <!-- ================= SECTION 1: INTRO (보강된 상세 이론) ================= -->
+        <section id="section-intro" class="space-y-12 fade-in">
+            <!-- 메인 배너 및 시뮬레이터 -->
+            <div class="bg-slate-800/40 rounded-[3rem] p-12 border border-white/5 shadow-2xl relative overflow-hidden">
+                <div class="grid lg:grid-cols-2 gap-16 items-center relative z-10">
+                    <div class="space-y-8">
+                        <div>
+                            <span class="inline-block px-4 py-1.5 bg-blue-600 text-white rounded-full text-[10px] font-black uppercase tracking-[3px] mb-6 shadow-xl shadow-blue-500/30">Aviation Technology Guide</span>
+                            <h2 class="text-5xl font-black text-white mb-6 font-[Montserrat] leading-tight">Precision Approach:<br><span class="text-blue-500">CAT II/III </span></h2>
+                            <p class="text-slate-400 leading-relaxed text-lg">
+                                저시정 상황에서 안전한 착륙을 보장하는 **ILS(Instrument Landing System)** 기술과 등급별 운영 차이
+                            </p>
                         </div>
-                        <div class="flex justify-center"><i class="fa-solid fa-arrow-down text-gray-400"></i></div>
-                        <div class="bg-blue-50 p-3 rounded border-l-4 border-accent-blue">
-                            <div class="font-bold">운항기술기준 9.1.15.2</div>
-                            <div class="text-sm text-gray-600">비행장 기상최저치 및 CAT II/III 승인 요건 명시</div>
+
+                        <div class="theory-box">
+                            <h4 class="font-black text-white mb-2 text-lg italic underline decoration-blue-500">무엇이 다른가요?</h4>
+                            <p class="text-sm text-slate-400">일반적인 착륙(CAT-I)은 조종사가 활주로를 직접 보고 내리는 비중이 크지만, **CAT-II/III**는 항공기의 자동 시스템과 지상 전파 신호에 전적으로 의존합니다. 시계가 거의 제로에 가까운 안개 속에서도 안전한 접지를 가능케 하는 고도의 공학적 결합입니다.</p>
                         </div>
-                        <div class="flex justify-center"><i class="fa-solid fa-arrow-down text-gray-400"></i></div>
-                        <div class="bg-orange-50 p-3 rounded border-l-4 border-accent-orange">
-                            <div class="font-bold">별표 8.1.11.8 (CAT-II Manual)</div>
-                            <div class="text-sm text-gray-600">상세 기술 기준: 공항시설, 항공기 장비, 조종사 훈련, 정비 프로그램</div>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-white/5 p-5 rounded-3xl border border-white/5">
+                                <h4 class="font-bold text-blue-400 text-sm font-[Montserrat]">Decision Height (DH)</h4>
+                                <p class="text-[11px] text-slate-500 mt-2">조종사가 육안으로 활주로 등화 등을 확인하고 "착륙(Land)" 혹은 "복행(Go-around)"을 최종 결정해야 하는 임계 고도입니다.</p>
+                            </div>
+                            <div class="bg-white/5 p-5 rounded-3xl border border-white/5">
+                                <h4 class="font-bold text-blue-400 text-sm font-[Montserrat]">Runway Visual Range (RVR)</h4>
+                                <p class="text-[11px] text-slate-500 mt-2">활주로 상에서 조종사가 식별할 수 있는 수평 가시거리입니다. 등급이 올라갈수록 필요한 가시거리는 짧아집니다.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Checklist Viz -->
-                <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h3 class="font-bold text-lg mb-4 text-primary">필수 개정 매뉴얼</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-center">
-                            <span class="w-8 h-8 rounded-full bg-accent-cyan text-white flex items-center justify-center mr-3 font-bold text-xs">A</span>
-                            <div>
-                                <div class="font-bold text-sm">FOM / POM</div>
-                                <div class="text-xs text-gray-500">운항 일반 규정 및 정책 수립</div>
-                            </div>
-                        </li>
-                        <li class="flex items-center">
-                            <span class="w-8 h-8 rounded-full bg-accent-cyan text-white flex items-center justify-center mr-3 font-bold text-xs">B</span>
-                            <div>
-                                <div class="font-bold text-sm">훈련교범 (Training Manual)</div>
-                                <div class="text-xs text-gray-500">초기/정기 훈련 커리큘럼 개정 (운항/정비/운항관리)</div>
-                            </div>
-                        </li>
-                        <li class="flex items-center">
-                            <span class="w-8 h-8 rounded-full bg-accent-cyan text-white flex items-center justify-center mr-3 font-bold text-xs">C</span>
-                            <div>
-                                <div class="font-bold text-sm">정비 규정 (GMM/GOM)</div>
-                                <div class="text-xs text-gray-500">CAT II/III 유지보수 프로그램 및 MEL/CDL 절차</div>
-                            </div>
-                        </li>
-                        <li class="flex items-center">
-                            <span class="w-8 h-8 rounded-full bg-accent-cyan text-white flex items-center justify-center mr-3 font-bold text-xs">D</span>
-                            <div>
-                                <div class="font-bold text-sm">AFM / FCOM</div>
-                                <div class="text-xs text-gray-500">제작사 기술 도서의 절차 반영 확인</div>
-                            </div>
-                        </li>
+                    <div class="flex flex-col gap-6">
+                        <canvas id="landingCanvas" class="h-[400px] w-full"></canvas>
+                        <div class="flex justify-between bg-black/50 p-3 rounded-2xl border border-white/10 no-print backdrop-blur-xl">
+                            <button onclick="setVisual(1)" class="flex-1 py-3 text-[11px] font-black text-white hover:bg-white/5 rounded-xl transition">CAT I</button>
+                            <button onclick="setVisual(2)" class="flex-1 py-3 text-[11px] font-black text-blue-400 hover:bg-white/5 rounded-xl transition">CAT II</button>
+                            <button onclick="setVisual(3)" class="flex-1 py-3 text-[11px] font-black text-indigo-400 hover:bg-white/5 rounded-xl transition">CAT III</button>
+                        </div>
+                        <p id="visualizer-status" class="text-center text-[11px] font-black uppercase tracking-[5px] text-blue-500 italic">CAT I APPROACH (Normal Visibility)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ILS 구성 및 등급 요약 카드 -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- LOC -->
+                <div class="compliance-card">
+                    <h3>📡 Localizer (방위각)</h3>
+                    <p class="text-xs text-slate-400 mb-4">활주로 중심선을 유도합니다. 항공기가 좌우로 치우치지 않게 전파 빔을 쏘아 정렬을 돕습니다.</p>
+                    <div class="text-[10px] text-blue-500 font-bold font-mono">FREQ: 108.1 ~ 111.95 MHz</div>
+                </div>
+                <!-- GS -->
+                <div class="compliance-card">
+                    <h3>📐 Glide Slope (활공각)</h3>
+                    <p class="text-xs text-slate-400 mb-4">안전한 하강 경로(약 3도)를 유도합니다. 지형물에 부딪히지 않고 접지구역에 도달하게 합니다.</p>
+                    <div class="text-[10px] text-indigo-500 font-bold font-mono">UHF BAND OPERATION</div>
+                </div>
+                <!-- Marker -->
+                <div class="compliance-card">
+                    <h3>📍 Marker / DME</h3>
+                    <p class="text-xs text-slate-400 mb-4">활주로까지 남은 거리를 알려줍니다. 조종사는 이를 통해 접근 진행 상황을 모니터링합니다.</p>
+                    <div class="text-[10px] text-accent font-bold font-mono">DISTANCE CHECKPOINT</div>
+                </div>
+                <!-- Criteria -->
+                <div class="compliance-card bg-blue-600/10 border-blue-500/20">
+                    <h3>🎯 등급별 인가 기준</h3>
+                    <ul class="text-[10px] space-y-2 text-slate-300">
+                        <li class="flex justify-between"><span>CAT-I:</span> <b class="text-white">DH 200ft / RVR 550m</b></li>
+                        <li class="flex justify-between"><span>CAT-II:</span> <b class="text-blue-400">DH 100ft / RVR 300m</b></li>
+                        <li class="flex justify-between"><span>CAT-IIIa:</span> <b class="text-indigo-400">DH 50ft / RVR 175m</b></li>
+                        <li class="flex justify-between"><span>CAT-IIIb:</span> <b class="text-accent">No DH / RVR 50m</b></li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: Departmental Roles & Readiness -->
-        <section class="mb-16">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-primary border-l-4 border-accent-blue pl-4">3. 부서별 업무 준비도 (Task Distribution)</h2>
-                <p class="mt-2 text-gray-600">
-                    성공적인 승인을 위해서는 운항기술팀, 훈련팀, 정비본부, 통제본부의 유기적인 협업이 필수적입니다.
-                </p>
+        <!-- ================= SECTION 2: COMPLIANCE (평면형 상세 페이지) ================= -->
+        <section id="section-compliance" class="hidden space-y-8 fade-in">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-black font-[Montserrat] tracking-tighter text-white">SYSTEM COMPLIANCE GUIDE</h2>
+                <p class="text-blue-500 font-bold text-sm tracking-[5px] uppercase mt-2">정밀접근계기비행 운용지침 전체 요약</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <div class="card">
-                    <h3 class="font-bold text-gray-700 mb-4 text-center">부서별 주요 업무 비중</h3>
-                    <div class="chart-container" style="height: 350px;">
-                        <canvas id="deptRadarChart"></canvas>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 1. 운항 카테고리 정의 -->
+                <div class="compliance-card lg:col-span-2">
+                    <h3>01. 운항 카테고리 정의</h3>
+                    <table class="comp-table">
+                        <thead><tr><th>구분</th><th>결심고도 (DH)</th><th>활주로가시범위 (RVR)</th></tr></thead>
+                        <tbody class="text-center">
+                            <tr><td class="font-bold text-white uppercase">CAT-I</td><td>60m(200ft) 이상</td><td>550m(1,800ft) 이상</td></tr>
+                            <tr class="bg-blue-500/5 text-blue-400"><td class="font-bold uppercase">CAT-II</td><td>30m~60m(100~200ft)</td><td>300m(1,000ft) 이상</td></tr>
+                            <tr class="bg-indigo-500/5 text-accent"><td class="font-bold uppercase">CAT-III</td><td>30m 미만 또는 없음</td><td>300m 미만 또는 제한없음</td></tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="bg-white p-4 rounded shadow border-l-4 border-blue-800">
-                        <h4 class="font-bold text-blue-800">운항기술팀 (Ops Eng)</h4>
-                        <p class="text-sm text-gray-600 mt-1">
-                            - 승인 신청 총괄 및 대관 업무 (서울지방항공청)<br>
-                            - 매뉴얼 (FOM, POM) 개정 주관<br>
-                            - A320/A330 성능 분석 및 AFM 절차 수립
-                        </p>
-                    </div>
-                    <div class="bg-white p-4 rounded shadow border-l-4 border-green-600">
-                        <h4 class="font-bold text-green-600">운항훈련팀 (Training)</h4>
-                        <p class="text-sm text-gray-600 mt-1">
-                            - 시뮬레이터 (CAE Sim Slot) 일정 확보<br>
-                            - 운항승무원 지상학/SIM 교육 실시<br>
-                            - 자격 부여 (Qualification) 관리
-                        </p>
-                    </div>
-                    <div class="bg-white p-4 rounded shadow border-l-4 border-yellow-600">
-                        <h4 class="font-bold text-yellow-600">정비본부 (Maintenance)</h4>
-                        <p class="text-sm text-gray-600 mt-1">
-                            - 정비 프로그램 개정 및 장비 신뢰성 관리<br>
-                            - Auto-land System 점검 및 정비사 교육
-                        </p>
-                    </div>
+                <!-- 8. 핵심 수치 요약 -->
+                <div class="compliance-card bg-blue-600/10 border-2 border-blue-500/30">
+                    <h3>08. 핵심 수치 요약</h3>
+                    <ul class="text-[11px] space-y-3 mt-4">
+                        <li class="flex justify-between border-b border-white/5 pb-1"><span>CAT-II 시범</span><b class="text-blue-400">6개월/100회/성공률 85%</b></li>
+                        <li class="flex justify-between border-b border-white/5 pb-1"><span>CAT-III 시범</span><b class="text-accent">6개월/100회/성공률 95%</b></li>
+                        <li class="flex justify-between border-b border-white/5 pb-1"><span>기장 자격</span><b>JET 300H / 해당기종 100H</b></li>
+                        <li class="flex justify-between"><span>시스템 평가주기</span><b>III: 30일 / II: 6개월</b></li>
+                    </ul>
                 </div>
-            </div>
-        </section>
 
-        <!-- Section 4: Operational Demonstration -->
-        <section class="mb-16">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-primary border-l-4 border-accent-blue pl-4">4. 실운항 검증 계획 (Validation Flights)</h2>
-                <p class="mt-2 text-gray-600">
-                    운항기술기준에 따라 운항 경험이 없는 항공사는 **최소 100회 이상의 연속적인 성공 자동 착륙(Auto-landing)** 기록을 제출해야 합니다. 
-                    이는 4월 신청 이후 9월까지 집중적으로 수행됩니다.
-                </p>
-            </div>
-
-            <div class="card">
-                <h3 class="font-bold text-gray-700 mb-4">월별 목표 Auto-landing 횟수 (누적)</h3>
-                <div class="chart-container">
-                    <canvas id="validationChart"></canvas>
-                </div>
-                <div class="mt-4 flex justify-between items-center text-sm bg-gray-50 p-3 rounded">
-                    <div><span class="font-bold text-accent-orange">Risk:</span> 기상 악화, 장비 결함 시 횟수 초기화 가능성</div>
-                    <div><span class="font-bold text-accent-blue">Mitigation:</span> A320/A330 전 기종 활용</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Conclusion & Call to Action -->
-        <section class="bg-white rounded-xl shadow-xl overflow-hidden">
-            <div class="bg-primary p-6">
-                <h2 class="text-2xl font-bold text-white">결론 및 협조 요청</h2>
-            </div>
-            <div class="p-8">
-                <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-primary mb-3">Time is Critical</h3>
-                        <p class="text-gray-600 mb-4">
-                            파라타항공은 현재 CAT II/III 운항 경험이 전무하므로, 기간 단축이 현실적으로 어렵습니다. 
-                            2026년 4월 신청을 위해서는 **지금 바로** 규정 보완과 훈련 계획이 확정되어야 합니다.
-                        </p>
-                        <h3 class="text-xl font-bold text-primary mb-3 mt-6">Next Step: Kick-off Meeting</h3>
-                        <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
-                            <div class="font-bold text-yellow-800"><i class="fa-regular fa-calendar-check mr-2"></i>회의 제안</div>
-                            <ul class="list-disc list-inside text-sm text-yellow-900 mt-2">
-                                <li><strong>일시:</strong> 2026. 1. 13 (화) 오전/오후</li>
-                                <li><strong>참석:</strong> 운항기술, 훈련, 정비, 통제 담당자</li>
-                                <li><strong>안건:</strong> R&R 확정 및 Sim Slot 확보 방안</li>
-                            </ul>
+                <!-- 2. 승인 요건 4대 분야 -->
+                <div class="compliance-card lg:col-span-3">
+                    <h3>02. 승인 요건 4대 분야</h3>
+                    <div class="grid md:grid-cols-4 gap-6 mt-4">
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-blue-400 font-bold text-xs mb-3">① 항공기 장비</p>
+                            <p class="text-[11px] text-slate-400">독립 항행수신기 2조, 자동착륙장치(Fail-Passive/Operational), 롤아웃 시스템, 전파고도계 2조, 미끄럼방지장치</p>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-indigo-400 font-bold text-xs mb-3">② 정비 프로그램</p>
+                            <p class="text-[11px] text-slate-400">저시정운항 정비절차 수립, 주기적 평가(30일/6개월), 시험장비 검교정, 신뢰성 보고체계 구축</p>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-accent font-bold text-xs mb-3">③ 운항승무원 훈련</p>
+                            <p class="text-[11px] text-slate-400">지상훈련(시설/장비), 비행훈련(모의장치), 연1회 정기심사, 자격유지(자동착륙 연1회 / 90일 1회 경험)</p>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <p class="text-white font-bold text-xs mb-3">④ 운항절차</p>
+                            <p class="text-[11px] text-slate-400">승무원 협동 및 모니터링, DH/AH 사용기준, Call-out 절차, 비정상상황 대응, 저시정 지상활주(Taxi) 절차</p>
                         </div>
                     </div>
-                    
-                    <!-- Final Visual Summary -->
-                    <div class="flex-1 flex flex-col justify-center items-center bg-gray-50 rounded p-4">
-                        <h4 class="font-bold text-gray-500 mb-4 uppercase text-xs tracking-wider">Project Success Probability</h4>
-                        <div class="chart-container" style="height: 250px; max-width: 250px;">
-                            <canvas id="successDonut"></canvas>
+                </div>
+
+                <!-- 3. 승인 절차 -->
+                <div class="compliance-card">
+                    <h3>03. 승인 절차</h3>
+                    <div class="space-y-4 text-[11px]">
+                        <p>● <b>CAT-I:</b> 별도 승인 불필요</p>
+                        <p>● <b>CAT-II:</b> 신청 → 서류심사 → 시범운항(100회) → 승인 (성공률 85% 이상 시 DH 30m 하향)</p>
+                        <p>● <b>CAT-III:</b> 신청 → 시범운항(100회) → 단계적 승인 (성공률 95% 이상 및 RVR 75m 단계적 하향)</p>
+                    </div>
+                </div>
+
+                <!-- 4. 비행장 시설 요건 -->
+                <div class="compliance-card">
+                    <h3>04. 비행장 시설 요건</h3>
+                    <ul class="text-[11px] text-slate-400 space-y-2 list-disc ml-4">
+                        <li>CAT-II/III 적합 ILS/MLS 시설</li>
+                        <li>고광도 등화(접근/접지대/중심선)</li>
+                        <li>RVR 측정 및 예보 시스템</li>
+                        <li>ILS 임계지역 및 장애물회피구역 보호</li>
+                        <li>CAT-II/III 적합 관제서비스(ATC)</li>
+                    </ul>
+                </div>
+
+                <!-- 5. 운항 제한사항 -->
+                <div class="compliance-card">
+                    <h3>05. 운항 제한사항</h3>
+                    <ul class="text-[11px] text-slate-400 space-y-2 list-disc ml-4">
+                        <li>측풍: AFM 제한치 또는 15kt 이하</li>
+                        <li>활주로 상태: 제동마찰계수 양호 필수</li>
+                        <li>RVR 보고: TDZ 필수, Mid/Rollout 조건부</li>
+                        <li>지상이동: SMGCS 절차 준수</li>
+                    </ul>
+                </div>
+
+                <!-- 6~7. 보고 의무 및 실패접근 -->
+                <div class="compliance-card lg:col-span-2">
+                    <h3>06-07. 보고 의무 및 실패접근 필수 상황</h3>
+                    <div class="grid grid-cols-2 gap-6 mt-2 text-[11px]">
+                        <div>
+                            <p class="text-amber-400 font-bold mb-2">보고 의무 (승인 후 1년)</p>
+                            <p class="text-slate-400 leading-relaxed">매월 운항 횟수/성공/실패 분석, 장비 결함 현황, 100ft 이하 비정상 상황 보고</p>
                         </div>
-                        <p class="text-center text-xs text-gray-400 mt-4">
-                            Based on current timeline adherence
-                        </p>
+                        <div>
+                            <p class="text-red-500 font-bold mb-2">실패접근(Go-around) 필수</p>
+                            <p class="text-slate-400 leading-relaxed">DH에서 시계 미확보, 필수장비 고장/연결해제, 지상시설 부작동, 측풍 초과</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <footer class="text-center py-12 text-gray-400 text-sm">
-            <p>Generated for Parata Air Flight Operations Engineering Team</p>
-            <p class="mt-1">Data Source: Flight Safety Regulations 2024-828, A320/A330 AFM, Ops Specs</p>
-        </footer>
+        <!-- ================= SECTION 3: PLAN ================= -->
+        <section id="section-plan" class="hidden space-y-8 fade-in">
+            <div class="bg-slate-800/40 rounded-3xl p-8 border border-white/5 border-l-[10px] border-l-blue-600">
+                <h2 class="text-2xl font-black text-white font-[Montserrat] uppercase italic">Operational Approval Roadmap</h2>
+                <div class="mt-4 space-y-3 text-slate-300 font-medium text-sm">
+                    <p>● 6개월간 CAT-II 시범 Auto Landing 100회 실시 - CAT-II 운항 승인 후</p>
+                    <p>● 이어서 3개월간 CAT-III 시범 Auto Landing 50회 실시후 CAT-III 승인</p>
+                </div>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-slate-800/40 p-10 rounded-[2.5rem] border border-white/5">
+                    <h3 class="font-bold mb-6 text-blue-400 border-b border-white/5 pb-3 italic text-sm font-[Montserrat]">Required Documents</h3>
+                    <div id="doc-checklist-container" class="space-y-2"></div>
+                </div>
+                <div class="bg-slate-900 p-10 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                    <h3 class="font-bold mb-8 italic text-white/40 tracking-widest text-xs font-[Montserrat]">MILESTONES</h3>
+                    <div class="space-y-12 relative pl-8">
+                        <div class="absolute left-3 top-2 bottom-2 w-px bg-white/10"></div>
+                        <div class="relative"><div class="absolute -left-8 w-4 h-4 rounded-full bg-blue-500 border-4 border-slate-900 shadow-[0_0_20px_rgba(59,130,246,0.6)]"></div><p class="text-sm font-bold uppercase tracking-widest">Phase 1: CAT-II Trial (6M)</p><p class="text-xs text-slate-500 mt-2 font-mono uppercase tracking-tighter">100 Successive Auto Landings</p></div>
+                        <div class="relative"><div class="absolute -left-8 w-4 h-4 rounded-full bg-indigo-500 border-4 border-slate-900 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div><p class="text-sm font-bold uppercase tracking-widest">Phase 2: CAT-III Trial (3M)</p><p class="text-xs text-slate-500 mt-2 font-mono uppercase tracking-tighter">50 Successive Auto Landings</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- ================= SECTION 4: DATA LOG ================= -->
+        <section id="section-data" class="hidden space-y-6 fade-in">
+            <div class="bg-slate-900/60 rounded-[2rem] p-8 border border-white/10 flex justify-between items-center no-print">
+                <h2 class="text-2xl font-black italic tracking-tighter font-[Montserrat]">LANDING PERFORMANCE DATA LEDGER</h2>
+                <div class="flex gap-3">
+                    <button onclick="exportToWord()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-black transition-all shadow-xl shadow-blue-500/20">WORD EXPORT</button>
+                    <button onclick="window.print()" class="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-xs font-black border border-white/10 transition-all">PRINT</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-10">
+                <!-- FORM -->
+                <div class="lg:col-span-4 space-y-6 no-print">
+                    <div class="bg-slate-800/40 p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                        <h3 class="font-black text-blue-400 mb-8 flex justify-between items-center italic text-xs tracking-widest">
+                            <span>+ RECORD NEW LOG</span>
+                            <span id="user-display" class="text-[8px] bg-blue-500/10 px-3 py-1 rounded-full text-blue-400 not-italic uppercase font-mono">Syncing...</span>
+                        </h3>
+                        <form id="landing-form" class="space-y-5">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Flight Date</label><input type="date" id="input-date" required class="w-full p-4 rounded-2xl text-xs"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Airport</label><input type="text" id="input-airport" placeholder="RKSI" required class="w-full p-4 rounded-2xl text-xs uppercase font-mono tracking-tighter"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Runway</label><input type="text" id="input-rwy" placeholder="33R" required class="w-full p-4 rounded-2xl text-xs uppercase font-mono"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">A/C Type</label><input type="text" id="input-type" placeholder="B787-9" required class="w-full p-4 rounded-2xl text-xs font-mono tracking-tighter"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Reg. No</label><input type="text" id="input-reg" placeholder="HL8080" required class="w-full p-4 rounded-2xl text-xs uppercase font-mono tracking-tighter"></div>
+                                <div class="col-span-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">WX Condition</label><input type="text" id="input-wx" placeholder="RVR 350m / Fog" required class="w-full p-4 rounded-2xl text-xs"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Captain</label><input type="text" id="input-capt" placeholder="Name" required class="w-full p-4 rounded-2xl text-xs"></div>
+                                <div><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">First Officer</label><input type="text" id="input-fo" placeholder="Name" required class="w-full p-4 rounded-2xl text-xs"></div>
+                                <div class="col-span-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Approach CAT</label><select id="input-cat" class="w-full p-4 rounded-2xl text-xs appearance-none font-bold"><option value="CAT-II">CAT-II (6M Trial)</option><option value="CAT-III">CAT-III (3M Trial)</option></select></div>
+                                <div class="col-span-2"><label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Autoland Quality</label><select id="input-satisfy" class="w-full p-4 rounded-2xl text-xs appearance-none font-bold"><option value="Satisfactory">Satisfactory (만족)</option><option value="Non-Satisfactory">Non-Satisfactory (불만족)</option></select></div>
+                                <div class="col-span-2 pt-4"><button type="submit" class="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-black shadow-2xl active:scale-95 transition-all uppercase italic text-xs tracking-[3px]">Send to Cloud</button></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TABLE & CHARTS -->
+                <div class="lg:col-span-8 space-y-10">
+                    <div class="bg-slate-800/20 p-10 rounded-[3rem] border border-white/5 flex justify-around items-center no-print backdrop-blur-md shadow-2xl">
+                        <div class="text-center w-1/2">
+                            <div class="chart-container mx-auto"><canvas id="chart-cat2"></canvas></div>
+                            <p class="text-[10px] font-black text-slate-500 mt-6 uppercase tracking-[3px] font-mono">CAT-II Progress: <span id="stat-cat2" class="text-blue-400">0</span> / 100</p>
+                        </div>
+                        <div class="text-center w-1/2 border-l border-white/5">
+                            <div class="chart-container mx-auto"><canvas id="chart-cat3"></canvas></div>
+                            <p class="text-[10px] font-black text-slate-500 mt-6 uppercase tracking-[3px] font-mono">CAT-III Progress: <span id="stat-cat3" class="text-indigo-400">0</span> / 50</p>
+                        </div>
+                    </div>
+
+                    <div id="printable-area" class="bg-slate-800/40 rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-white/5">
+                                <thead class="bg-white/5 font-[Montserrat]">
+                                    <tr class="text-[8px] text-slate-500 font-black uppercase tracking-widest">
+                                        <th class="px-8 py-5 text-left">Date / Airport</th>
+                                        <th class="px-8 py-5 text-left">A/C Info</th>
+                                        <th class="px-8 py-5 text-left">WX / Status</th>
+                                        <th class="px-8 py-5 text-left">Crew Info</th>
+                                        <th class="px-8 py-5 text-right no-print">Act</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="landing-table-body" class="divide-y divide-white/5 text-[10px]"></tbody>
+                            </table>
+                            <div id="empty-state" class="p-20 text-center text-slate-600 italic text-xs tracking-widest uppercase">Syncing with server...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- JavaScript for Charts -->
-    <script>
-        // Common Chart Defaults
-        Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
-        Chart.defaults.color = '#4B5563';
-        Chart.defaults.responsive = true;
-        Chart.defaults.maintainAspectRatio = false;
+    <footer class="py-16 text-center border-t border-white/5 no-print">
+        <b class="text-white/40 tracking-[15px] font-black italic text-xl uppercase font-[Montserrat]">PARATA AIR</b>
+        <p class="text-slate-600 text-[10px] mt-4 uppercase tracking-[5px] font-bold">Flight Operations Intelligence • Approval Tracker</p>
+    </footer>
 
-        // Helper function for wrapping text (16 chars)
-        function wrapLabel(str, maxChars) {
-            if (str.length <= maxChars) return str;
-            const words = str.split(' ');
-            const lines = [];
-            let currentLine = words[0];
+    <!-- Firebase SDK (RTDB Version) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-            for (let i = 1; i < words.length; i++) {
-                if ((currentLine + " " + words[i]).length <= maxChars) {
-                    currentLine += " " + words[i];
-                } else {
-                    lines.push(currentLine);
-                    currentLine = words[i];
-                }
-            }
-            lines.push(currentLine);
-            return lines;
-        }
-
-        // Common Tooltip Callback
-        const commonTooltip = {
-            callbacks: {
-                title: function(tooltipItems) {
-                    const item = tooltipItems[0];
-                    let label = item.chart.data.labels[item.dataIndex];
-                    if (Array.isArray(label)) {
-                        return label.join(' ');
-                    } else {
-                        return label;
-                    }
-                }
-            }
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBb8ruxrJa-Fw4s5bwy_10TeH6_TgOhnz4",
+            authDomain: "parataoe-769bb.firebaseapp.com",
+            databaseURL: "https://parataoe-769bb-default-rtdb.firebaseio.com/",
+            projectId: "parataoe-769bb",
+            storageBucket: "parataoe-769bb.firebasestorage.app",
+            messagingSenderId: "964545748384",
+            appId: "1:964545748384:web:f882221099022e4271d8c5",
+            measurementId: "G-5LJ4QR4XED"
         };
 
-        // 1. Timeline Chart (Gantt-style using Floating Bars)
-        const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
-        // Data prep: [Start Month, End Month] (Approximation: Jan=0, Feb=1...)
-        // 2026.1 -> 0, 2026.4 -> 3
-        const timelineChart = new Chart(ctxTimeline, {
-            type: 'bar',
-            data: {
-                labels: [
-                    wrapLabel('규정 보완 (Manuals)', 16),
-                    wrapLabel('교육/훈련 (Training)', 16),
-                    wrapLabel('승인 신청 (Application)', 16),
-                    wrapLabel('시범 운항 (Demonstration)', 16)
-                ],
-                datasets: [{
-                    label: '기간 (개월)',
-                    data: [
-                        [0, 1], // Jan
-                        [1, 3], // Feb-Mar
-                        [3, 4], // Apr
-                        [3, 9]  // Apr-Sep
-                    ],
-                    backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)', // Blue
-                        'rgba(249, 115, 22, 0.8)', // Orange
-                        'rgba(6, 182, 212, 0.8)',  // Cyan
-                        'rgba(15, 23, 42, 0.8)'    // Dark
-                    ],
-                    borderRadius: 6,
-                    barPercentage: 0.6
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 9,
-                        ticks: {
-                            callback: function(value, index, values) {
-                                const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월'];
-                                return months[value] || '';
-                            }
-                        },
-                        grid: { color: '#E5E7EB' }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: commonTooltip,
-                    title: {
-                        display: true,
-                        text: '2026년 주요 추진 일정',
-                        font: { size: 16, weight: 'bold' }
-                    }
-                }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const landingsRef = ref(db, 'cat_landings');
+
+        const state = { landings: [], charts: { cat2: null, cat3: null }, visualMode: 1, currentTab: 'intro' };
+
+        const DOCS = [
+            {n: "시범운항 승인신청서", d: "공통"}, {n: "교육훈련결과", d: "인사/훈련"},
+            {n: "필요장비 현황 / Cert Doc", d: "운항기술팀"}, {n: "운항규정 (OM)", d: "표준심사팀"},
+            {n: "훈련교범 (TM)", d: "훈련팀"}, {n: "운항관리사 훈련교범", d: "운항통제실"},
+            {n: "정비규정", d: "정비기술팀"}, {n: "정비프로그램", d: "품질보증팀"}
+        ];
+
+        onValue(landingsRef, (snap) => {
+            const data = snap.val();
+            const overlay = document.getElementById('auth-overlay'); if (overlay) overlay.style.display = 'none';
+            const userDisp = document.getElementById('user-display'); if (userDisp) userDisp.innerText = `CLOUD SYNC: ACTIVE`;
+            
+            if (data) {
+                state.landings = Object.keys(data).map(key => ({ id: key, ...data[key] })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                const es = document.getElementById('empty-state'); if(es) es.style.display = 'none';
+            } else {
+                state.landings = [];
+                const es = document.getElementById('empty-state'); if(es) { es.style.display = 'block'; es.innerText = '실적 데이터가 없습니다.'; }
             }
+            renderTable(); updateCharts();
         });
 
-        // 2. Department Radar Chart
-        const ctxRadar = document.getElementById('deptRadarChart').getContext('2d');
-        const deptRadarChart = new Chart(ctxRadar, {
-            type: 'radar',
-            data: {
-                labels: [
-                    wrapLabel('문서작성 (Documentation)', 16),
-                    wrapLabel('대관업무 (Regulations)', 16),
-                    wrapLabel('장비점검 (Equipment)', 16),
-                    wrapLabel('인력교육 (Training)', 16),
-                    wrapLabel('운항통제 (Dispatch)', 16)
-                ],
-                datasets: [{
-                    label: '운항기술팀',
-                    data: [90, 100, 20, 30, 40],
-                    fill: true,
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: '#3B82F6',
-                    pointBackgroundColor: '#3B82F6',
-                }, {
-                    label: '정비/훈련/통제',
-                    data: [40, 20, 90, 100, 60],
-                    fill: true,
-                    backgroundColor: 'rgba(249, 115, 22, 0.2)',
-                    borderColor: '#F97316',
-                    pointBackgroundColor: '#F97316',
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: { color: '#E5E7EB' },
-                        grid: { color: '#E5E7EB' },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                },
-                plugins: {
-                    tooltip: commonTooltip
-                }
-            }
+        document.getElementById('landing-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newData = {
+                date: document.getElementById('input-date').value,
+                airport: document.getElementById('input-airport').value.toUpperCase(),
+                runway: document.getElementById('input-rwy').value.toUpperCase(),
+                type: document.getElementById('input-type').value,
+                reg: document.getElementById('input-reg').value.toUpperCase(),
+                wx: document.getElementById('input-wx').value,
+                capt: document.getElementById('input-capt').value,
+                fo: document.getElementById('input-fo').value,
+                cat: document.getElementById('input-cat').value,
+                satisfy: document.getElementById('input-satisfy').value,
+                count: 1
+            };
+            push(landingsRef, newData); e.target.reset();
+            const di = document.getElementById('input-date'); if(di) di.valueAsDate = new Date();
         });
 
-        // 3. Validation Flight Projection (Line Chart)
-        const ctxValidation = document.getElementById('validationChart').getContext('2d');
-        const validationChart = new Chart(ctxValidation, {
-            type: 'line',
-            data: {
-                labels: ['4월', '5월', '6월', '7월', '8월', '9월'],
-                datasets: [{
-                    label: '누적 목표 (Cumulative Target)',
-                    data: [5, 20, 40, 65, 85, 100],
-                    borderColor: '#06B6D4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                },
-                {
-                    label: '최소 요구량 (Requirement)',
-                    data: [100, 100, 100, 100, 100, 100],
-                    borderColor: '#F97316',
-                    borderDash: [5, 5],
-                    fill: false,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Auto-landings (회)' }
-                    }
-                },
-                plugins: {
-                    tooltip: commonTooltip,
-                    annotation: {
-                        annotations: {
-                            line1: {
-                                type: 'line',
-                                yMin: 100,
-                                yMax: 100,
-                                borderColor: 'rgb(255, 99, 132)',
-                                borderWidth: 2,
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        window.deleteEntry = (id) => { if(confirm('삭제하시겠습니까?')) remove(ref(db, 'cat_landings/' + id)); };
 
-        // 4. Success Probability Donut
-        const ctxDonut = document.getElementById('successDonut').getContext('2d');
-        const successDonut = new Chart(ctxDonut, {
-            type: 'doughnut',
-            data: {
-                labels: ['준비 완료 (Ready)', '잔여 과제 (Remaining)'],
-                datasets: [{
-                    data: [15, 85], // Just started
-                    backgroundColor: [
-                        '#3B82F6',
-                        '#E5E7EB'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '70%',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: commonTooltip,
-                    title: {
-                        display: true,
-                        text: '현재 진행률 (15%)',
-                        position: 'bottom'
-                    }
-                }
+        function renderTable() {
+            const tbody = document.getElementById('landing-table-body'); if(!tbody) return;
+            tbody.innerHTML = state.landings.map(l => `
+                <tr class="hover:bg-white/[0.03] transition-all font-sans">
+                    <td class="px-8 py-5 font-mono font-bold text-white leading-tight">
+                        <div>${l.date}</div>
+                        <div class="text-[8px] text-blue-400 font-black tracking-widest uppercase">${l.airport} / ${l.runway}</div>
+                    </td>
+                    <td class="px-8 py-5">
+                        <div class="font-bold text-slate-300 font-mono tracking-tighter">${l.type}</div>
+                        <div class="text-[9px] text-slate-500 font-black uppercase font-mono tracking-tighter">${l.reg}</div>
+                    </td>
+                    <td class="px-8 py-5">
+                        <div class="text-[9px] font-bold text-slate-400 truncate max-w-[120px] mb-1">${l.wx}</div>
+                        <span class="px-2 py-0.5 rounded text-[7px] font-black ${l.satisfy === 'Satisfactory' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'} uppercase tracking-widest inline-block shadow-sm">${l.satisfy}</span>
+                    </td>
+                    <td class="px-8 py-5 text-[9px] text-slate-400 leading-tight">
+                        <div class="mb-1 italic">C: <span class="text-slate-200 font-medium not-italic">${l.capt}</span></div>
+                        <div class="italic">F: <span class="text-slate-200 font-medium not-italic">${l.fo}</span></div>
+                        <div class="mt-2 font-black text-blue-500 text-[8px] uppercase tracking-widest">${l.cat}</div>
+                    </td>
+                    <td class="px-8 py-5 text-right no-print">
+                        <button onclick="deleteEntry('${l.id}')" class="text-slate-700 hover:text-rose-500 transition-colors font-mono font-black text-[10px]">DEL</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateCharts() {
+            const c2 = state.landings.filter(l => l.cat === 'CAT-II').length;
+            const c3 = state.landings.filter(l => l.cat === 'CAT-III').length;
+            const s2 = document.getElementById('stat-cat2'); if(s2) s2.innerText = c2;
+            const s3 = document.getElementById('stat-cat3'); if(s3) s3.innerText = c3;
+            if(state.charts.cat2) { state.charts.cat2.data.datasets[0].data = [c2, Math.max(0, 100-c2)]; state.charts.cat2.update(); }
+            if(state.charts.cat3) { state.charts.cat3.data.datasets[0].data = [c3, Math.max(0, 50-c3)]; state.charts.cat3.update(); }
+        }
+
+        window.switchTab = (id) => {
+            ['intro', 'compliance', 'plan', 'data'].forEach(t => {
+                const s = document.getElementById(`section-${t}`); if(s) s.classList.add('hidden');
+                const n = document.getElementById(`nav-${t}`); if(n) n.className = 'tab-inactive py-2 font-bold uppercase tracking-tight';
+            });
+            const ts = document.getElementById(`section-${id}`); if(ts) ts.classList.remove('hidden');
+            const tn = document.getElementById(`nav-${id}`); if(tn) tn.className = 'tab-active py-2 font-bold uppercase tracking-tight';
+            state.currentTab = id; if (id === 'intro') initVisualizer();
+        };
+
+        window.exportToWord = () => {
+            if (state.landings.length === 0) return alert("데이터가 없습니다.");
+            let rows = state.landings.map(i => `<tr><td>${i.date}</td><td>${i.airport}</td><td>${i.runway}</td><td>${i.type}</td><td>${i.reg}</td><td>${i.wx}</td><td>${i.capt}</td><td>${i.fo}</td><td>${i.cat}</td><td>${i.satisfy}</td></tr>`).join('');
+            const content = `<html><head><meta charset='utf-8'><style>table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:6px;text-align:center;font-size:9pt;font-family:'Malgun Gothic'}</style></head><body><h2 style='text-align:center'>CAT II/III Landing Performance Ledger</h2><table><thead><tr><th bgcolor='#f2f2f2'>Date</th><th bgcolor='#f2f2f2'>APT</th><th bgcolor='#f2f2f2'>RWY</th><th bgcolor='#f2f2f2'>Type</th><th bgcolor='#f2f2f2'>Reg</th><th bgcolor='#f2f2f2'>WX</th><th bgcolor='#f2f2f2'>Capt</th><th bgcolor='#f2f2f2'>F.O</th><th bgcolor='#f2f2f2'>CAT</th><th bgcolor='#f2f2f2'>Status</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+            const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `CAT_Landing_Report_${new Date().toISOString().slice(0,10)}.doc`; link.click();
+        };
+
+        const setupUI = () => {
+            const chartCfg = (c) => ({ type: 'doughnut', data: { datasets: [{ data: [0, 100], backgroundColor: [c, 'rgba(255,255,255,0.05)'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '88%', plugins: { legend: { display: false } } } });
+            const ctx2 = document.getElementById('chart-cat2'); if(ctx2) state.charts.cat2 = new Chart(ctx2, chartCfg('#3b82f6'));
+            const ctx3 = document.getElementById('chart-cat3'); if(ctx3) state.charts.cat3 = new Chart(ctx3, chartCfg('#6366f1'));
+            const dcc = document.getElementById('doc-checklist-container'); if(dcc) dcc.innerHTML = DOCS.map(d => `<div class="flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-white/5 transition-all hover:border-blue-500/50"><div><span class="text-[10px] font-bold text-white font-sans">${d.n}</span><div class="text-[8px] text-slate-500 font-mono uppercase tracking-widest">${d.d}</div></div><input type="checkbox" class="w-4 h-4 rounded bg-slate-800 border-white/10 text-blue-500 cursor-pointer"></div>`).join('');
+        };
+
+        let aniId;
+        window.initVisualizer = () => {
+            const cv = document.getElementById('landingCanvas'); if(!cv) return;
+            const ctx = cv.getContext('2d'); cv.width = cv.parentElement.clientWidth; cv.height = cv.parentElement.clientHeight;
+            function draw() {
+                if(state.currentTab !== 'intro') return;
+                ctx.clearRect(0,0,cv.width,cv.height); ctx.fillStyle = '#050505'; ctx.fillRect(0, cv.height/2, cv.width, cv.height/2);
+                ctx.beginPath(); ctx.moveTo(cv.width/2-20, cv.height/2); ctx.lineTo(cv.width/2+380, cv.height); ctx.lineTo(cv.width/2-380, cv.height); ctx.closePath(); ctx.fillStyle = '#111'; ctx.fill();
+                let f = state.visualMode === 1 ? 0.2 : (state.visualMode === 2 ? 0.65 : 0.96);
+                const g = ctx.createLinearGradient(0,0,0,cv.height); g.addColorStop(0, `rgba(210,210,230,${f})`); g.addColorStop(1, `rgba(210,210,230,${f*0.4})`);
+                ctx.fillStyle = g; ctx.fillRect(0,0,cv.width,cv.height); aniId = requestAnimationFrame(draw);
             }
-        });
+            cancelAnimationFrame(aniId); draw();
+        };
+        window.setVisual = (m) => { state.visualMode = m; const el = document.getElementById('visualizer-status'); if(el) el.innerText = `CAT ${m===1?'I':m===2?'II':'III'} APPROACH (${m===1?'Normal':m===2?'Low Vis':'Critical Vis'})`; };
+
+        setupUI(); initVisualizer();
+        const di = document.getElementById('input-date'); if(di) di.valueAsDate = new Date();
     </script>
 </body>
 </html>
